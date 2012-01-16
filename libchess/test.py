@@ -1,5 +1,5 @@
 import unittest
-from libchess import Chess, BoardSquare
+from libchess import Chess, BoardSquare, InvalidSquareException
 
 class TestChess(unittest.TestCase):
 
@@ -28,7 +28,7 @@ class TestChess(unittest.TestCase):
             try:
                 BoardSquare(file, rank)
                 pass
-            except AssertionError:
+            except InvalidSquareException:
                 pass
 
         expect_fail('z', 1)
@@ -44,6 +44,24 @@ class TestChess(unittest.TestCase):
         self.assertEqual(f('d', 4), None)
         self.assertEqual(f('a', 1), "R")
         self.assertEqual(f('f', 7), "p")
+
+    def test_valid_moves(self):
+        chess = Chess()
+
+        def f(file, rank, moves):
+            start = BoardSquare(file, rank)
+            self.assertListEqual(chess.valid_moves(start), moves)
+
+        f('a', 1, list())
+        f('a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
+
+    def test_square_adjustments(self):
+        sq = BoardSquare('c', 3)
+
+        self.assertEqual(sq.delta(1, 1), BoardSquare('d', 4))
+        self.assertIsNone(sq.delta(10, 10))
+        self.assertIsNone(sq.delta(-10, -10))
+        self.assertEqual(sq.delta(-1, -1), BoardSquare('b', 2))
 
 if __name__ == '__main__':
     unittest.main()
