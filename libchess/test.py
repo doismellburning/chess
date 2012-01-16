@@ -43,6 +43,7 @@ class TestChess(unittest.TestCase):
 
         self.assertEqual(f('d', 4), None)
         self.assertEqual(f('a', 1), "R")
+        self.assertEqual(f('f', 7), "p")
 
 if __name__ == '__main__':
     unittest.main()
