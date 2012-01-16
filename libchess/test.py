@@ -1,5 +1,5 @@
 import unittest
-from libchess import Chess
+from libchess import Chess, BoardSquare
 
 class TestChess(unittest.TestCase):
 
@@ -18,8 +18,31 @@ class TestChess(unittest.TestCase):
         test(self.STARTING_FEN)
         #TODO More fens
 
+    def test_squares(self):
+        BoardSquare('e', 5)
+        BoardSquare('a', 1)
+        BoardSquare('c', 3)
+        BoardSquare('g', 2)
 
+        def expect_fail(file, rank):
+            try:
+                BoardSquare(file, rank)
+                pass
+            except AssertionError:
+                pass
 
+        expect_fail('z', 1)
+        expect_fail('a', -1)
+
+    def test_square_fetch(self):
+        chess = Chess()
+
+        def f(file, rank):
+            sq = BoardSquare(file, rank)
+            return chess.board.piece_at_board_square(sq)
+
+        self.assertEqual(f('d', 4), None)
+        self.assertEqual(f('a', 1), "R")
 
 if __name__ == '__main__':
     unittest.main()

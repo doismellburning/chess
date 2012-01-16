@@ -1,7 +1,15 @@
 
 class BoardSquare(object):
-    pass
+    def __init__(self, file, rank): #TODO Consider changing this to just take "e5"?
+        assert(rank >= 1 and rank <= 8)
+        assert(file >= "a" and file <= "h")
+        self.rank = rank
+        self.file = file
 
+    def to_board_coordinates(self):
+        fst = 8 - self.rank
+        snd = ord(self.file) - ord('a')
+        return (fst, snd)
 
 class CastlingState(object):
     def __init__(self):
@@ -31,15 +39,17 @@ class CastlingState(object):
         return str
 
 class BasicMove(object):
-    pass
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
 
 class Board(object):
     def __init__(self):
         self.squares = [[None for i in xrange(8)] for j in xrange(8)]
-        self.squares[0] = 'rnbqkbnr'.split()
+        self.squares[0] = list('rnbqkbnr')
         self.squares[1] = ['p' for i in xrange(8)]
         self.squares[6] = ['P' for i in xrange(8)]
-        self.squares[7] = 'RNBQKBNR'.split()
+        self.squares[7] = list('RNBQKBNR')
 
     def __str__(self):
         rows = list()
@@ -61,7 +71,8 @@ class Board(object):
         return "/".join(rows)
 
     def piece_at_board_square(self, board_square):
-        raise NotImplementedError()
+        coords = board_square.to_board_coordinates()
+        return self.squares[coords[0]][coords[1]]
 
 class Chess(object):
 	
