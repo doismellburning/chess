@@ -1,3 +1,5 @@
+import copy
+
 class InvalidSquareException(Exception):
     pass
 
@@ -74,12 +76,18 @@ class BasicMove(object):
         return "(%s -> %s)" % (self.start, self.end)
 
 class Board(object):
-    def __init__(self):
-        self.squares = [[None for i in xrange(8)] for j in xrange(8)]
-        self.squares[0] = list('rnbqkbnr')
-        self.squares[1] = ['p' for i in xrange(8)]
-        self.squares[6] = ['P' for i in xrange(8)]
-        self.squares[7] = list('RNBQKBNR')
+    def __init__(self, squares=None):
+        if squares is None:
+            self.squares = [[None for i in xrange(8)] for j in xrange(8)]
+            self.squares[0] = list('rnbqkbnr')
+            self.squares[1] = ['p' for i in xrange(8)]
+            self.squares[6] = ['P' for i in xrange(8)]
+            self.squares[7] = list('RNBQKBNR')
+        else:
+            assert(len(squares) == 8)
+            for rank_or_file_I_forget in squares:
+                assert(len(rank_or_file_I_forget) == 8)
+            self.squares = squares
 
     def __str__(self):
         rows = list()
@@ -109,8 +117,16 @@ class Board(object):
         raise NotImplementedError()
 
     def board_from_move(self, move):
-        #Return new board based on move applied to self
-        raise NotImplementedError()
+        new_board_squares = copy.deepcopy(self.squares)
+
+        #TODO Move this into a board.move()?
+        start_coords = move.start.to_board_coordinates()
+        end_coords = move.end.to_board_coordinates()
+        new_board_squares[end_coords[0]][end_coords[1]] = new_board_squares[start_coords[0]][start_coords[1]]
+        new_board_squares[start_coords[0]][start_coords[1]] = None
+
+        return Board(new_board_squares)
+
 
 class Chess(object):
 	
@@ -145,10 +161,10 @@ class Chess(object):
         moves = list()
         if piece == 'r' or piece == 'R':
             #TODO Figure out what loop I want for this?
-            moves.append(self.generate_moves(color, start, 0, +1, 8))
-            moves.append(self.generate_moves(color, start, 0, -1, 8))
-            moves.append(self.generate_moves(color, start, +1, 0, 8))
-            moves.append(self.generate_moves(color, start, -1, 0, 8))
+            moves.extend(self.generate_moves(color, start, 0, +1, 8))
+            moves.extend(self.generate_moves(color, start, 0, -1, 8))
+            moves.extend(self.generate_moves(color, start, +1, 0, 8))
+            moves.extend(self.generate_moves(color, start, -1, 0, 8))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
             rank_delta = 0
@@ -160,10 +176,10 @@ class Chess(object):
                 rank_delta = 1
                 if start.rank == 2:
                     starting_rank = True
-            moves = self.generate_moves(start, rank_delta, 0, 1, False)
+            moves.extend(self.generate_moves(start, rank_delta, 0, 1, False))
 
             if starting_rank:
-                moves = generate_moves(start, 2 * rank_delta, 0, 1, False)
+                moves.extend(self.generate_moves(start, 2 * rank_delta, 0, 1, False))
 
             #TODO Capturing moves...
         else:

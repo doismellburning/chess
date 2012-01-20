@@ -53,7 +53,7 @@ class TestChess(unittest.TestCase):
             self.assertListEqual(chess.valid_moves(start), moves)
 
         f('a', 1, list())
-        f('a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
+        f('a', 2, [BoardSquare('a', 3), BoardSquare('a', 4)])
 
     def test_square_adjustments(self):
         sq = BoardSquare('c', 3)
