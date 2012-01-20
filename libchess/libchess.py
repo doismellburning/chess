@@ -1,6 +1,14 @@
 class InvalidSquareException(Exception):
     pass
 
+#TODO Replace this with something better...
+#TODO Piece and colour objects?
+def colour_of_piece(piece):
+    if piece >= "A" and piece <= "Z":
+        return "w"
+    if piece >= "a" and piece <= "z":
+        return "b"
+
 class BoardSquare(object):
     def __init__(self, file, rank): #TODO Consider changing this to just take "e5"?
         if rank < 1 or rank > 8:
@@ -129,22 +137,33 @@ class Chess(object):
 
         assert(piece != None)
 
-        #TODO Function this more proper like?
-        def f():
-            if piece >= "A" and piece <= "Z":
-                assert(self.active == "w")
-            elif piece >= "a" and piece <= "z":
-                assert(self.active == "b")
-            else:
-                raise NotImplementedError() #TODO Better error
-        f()
+        assert(self.active == colour_of_piece(piece))
 
         # Generate moves
         moves = list()
         if piece == 'r' or piece == 'R':
-            raise NotImplementedError()
-        if piece == 'p' or piece == 'P':
-            raise NotImplementedError()
+            #TODO Figure out what loop I want for this?
+            moves.append(self.generate_moves(color, start, 0, +1, 8, True))
+            moves.append(self.generate_moves(color, start, 0, -1, 8, True))
+            moves.append(self.generate_moves(color, start, +1, 0, 8, True))
+            moves.append(self.generate_moves(color, start, -1, 0, 8, True))
+        elif piece == 'p' or piece == 'P':
+            starting_rank = False
+            rank_delta = 0
+            if piece == 'p':
+                rank_delta = -1
+                if start.rank == 7:
+                    starting_rank = True
+            if piece == 'P':
+                rank_delta = 1
+                if start.rank == 2:
+                    starting_rank = True
+            moves = self.generate_moves(start, rank_delta, 0, 1, False)
+
+            if starting_rank:
+                moves = generate_moves(start, 2 * rank_delta, 0, 1, False)
+
+            #TODO Capturing moves...
         else:
             raise NotImplementedError()
 
@@ -155,6 +174,9 @@ class Chess(object):
         valid_moves = [move_board[0] for move_board in move_boards if move_board[1].check_status() != self.active]
 
         return valid_moves
+
+    def generate_moves(self, start, rank_delta, file_delta, limit, can_take):
+        raise NotImplementedError()
 
     def move(self, move):
         assert(self.is_move_valid(move))
