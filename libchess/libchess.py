@@ -194,23 +194,24 @@ class Chess(object):
         return valid_moves
 
     def generate_moves(self, color, start, rank_delta, file_delta, limit, can_take=True):
-        moves = []
+        #print "Generating moves from %s with delta (%d,%d) and limit %d" % (start, rank_delta, file_delta, limit)
+        ends = []
         position = start
         for i in xrange(limit):
-            position = position.delta(rank_delta, file_delta)
+            position = position.delta(rank_delta=rank_delta, file_delta=file_delta)
             if position is None:
                 break
 
             end_piece = self.board.piece_at_board_square(position)
 
             if end_piece is None:
-                moves.append(position)
+                ends.append(position)
             else:
                 if can_take and colour_of_piece(end_piece) != color:
-                    moves.append(position)
+                    ends.append(position)
                 break
 
-        return moves
+        return [BasicMove(start, end) for end in ends]
 
     def move(self, move):
         assert(self.is_move_valid(move))
