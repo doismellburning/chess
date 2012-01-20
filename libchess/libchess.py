@@ -137,16 +137,18 @@ class Chess(object):
 
         assert(piece != None)
 
-        assert(self.active == colour_of_piece(piece))
+        color = colour_of_piece(piece)
+
+        assert(self.active == color)
 
         # Generate moves
         moves = list()
         if piece == 'r' or piece == 'R':
             #TODO Figure out what loop I want for this?
-            moves.append(self.generate_moves(color, start, 0, +1, 8, True))
-            moves.append(self.generate_moves(color, start, 0, -1, 8, True))
-            moves.append(self.generate_moves(color, start, +1, 0, 8, True))
-            moves.append(self.generate_moves(color, start, -1, 0, 8, True))
+            moves.append(self.generate_moves(color, start, 0, +1, 8))
+            moves.append(self.generate_moves(color, start, 0, -1, 8))
+            moves.append(self.generate_moves(color, start, +1, 0, 8))
+            moves.append(self.generate_moves(color, start, -1, 0, 8))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
             rank_delta = 0
@@ -175,8 +177,24 @@ class Chess(object):
 
         return valid_moves
 
-    def generate_moves(self, start, rank_delta, file_delta, limit, can_take):
-        raise NotImplementedError()
+    def generate_moves(self, color, start, rank_delta, file_delta, limit, can_take=True):
+        moves = []
+        position = start
+        for i in xrange(limit):
+            position = position.delta(rank_delta, file_delta)
+            if position is None:
+                break
+
+            end_piece = self.board.piece_at_board_square(position)
+
+            if end_piece is None:
+                moves.append(position)
+            else:
+                if colour_of_piece(end_piece) != color:
+                    moves.append(position)
+                break
+
+        return moves
 
     def move(self, move):
         assert(self.is_move_valid(move))
