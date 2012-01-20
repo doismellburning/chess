@@ -1,5 +1,5 @@
 import unittest
-from libchess import Chess, BoardSquare, InvalidSquareException
+from libchess import Chess, BoardSquare, InvalidSquareException, BasicMove
 
 class TestChess(unittest.TestCase):
 
@@ -48,11 +48,13 @@ class TestChess(unittest.TestCase):
     def test_valid_moves(self):
         chess = Chess()
 
-        def f(file, rank, moves):
+        def f(file, rank, ends):
             start = BoardSquare(file, rank)
+            moves = [BasicMove(start, end) for end in ends]
             self.assertListEqual(chess.valid_moves(start), moves)
 
         f('a', 1, list())
+
         f('a', 2, [BoardSquare('a', 3), BoardSquare('a', 4)])
 
     def test_square_adjustments(self):
