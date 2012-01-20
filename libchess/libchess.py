@@ -206,7 +206,7 @@ class Chess(object):
             if end_piece is None:
                 moves.append(position)
             else:
-                if colour_of_piece(end_piece) != color:
+                if can_take and colour_of_piece(end_piece) != color:
                     moves.append(position)
                 break
 
