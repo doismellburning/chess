@@ -176,10 +176,10 @@ class Chess(object):
                 rank_delta = 1
                 if start.rank == 2:
                     starting_rank = True
-            moves.extend(self.generate_moves(start, rank_delta, 0, 1, False))
+            moves.extend(self.generate_moves(color, start, rank_delta, 0, 1, False))
 
             if starting_rank:
-                moves.extend(self.generate_moves(start, 2 * rank_delta, 0, 1, False))
+                moves.extend(self.generate_moves(color, start, 2 * rank_delta, 0, 1, False))
 
             #TODO Capturing moves...
         else:
