@@ -50,12 +50,11 @@ class TestChess(unittest.TestCase):
 
         def f(file, rank, ends):
             start = BoardSquare(file, rank)
-            moves = [BasicMove(start, end) for end in ends]
-            self.assertListEqual(chess.valid_moves(start), moves)
+            moves = set([BasicMove(start, end) for end in ends])
+            self.assertSetEqual(chess.valid_moves(start), moves)
 
-        f('a', 1, list())
-
-        f('a', 2, [BoardSquare('a', 3), BoardSquare('a', 4)])
+        f('a', 1, set())
+        f('a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
 
     def test_square_adjustments(self):
         sq = BoardSquare('c', 3)

@@ -39,6 +39,9 @@ class BoardSquare(object):
     def __eq__(self, other):
         return self.rank == other.rank and self.file == other.file
 
+    def __hash__(self):
+        return hash(self.rank) ^ hash(self.file)
+
 
 class CastlingState(object):
     def __init__(self):
@@ -74,6 +77,13 @@ class BasicMove(object):
 
     def __str__(self):
         return "(%s -> %s)" % (self.start, self.end)
+
+    def __eq__(self, other):
+        return self.start.__eq__(other.start) and self.end.__eq__(other.end)
+
+    def __hash__(self):
+        #TODO This means reverse move has same hash - consider fixing?
+        return hash(self.start) ^ hash(self.end)
 
 class Board(object):
     def __init__(self, squares=None):
@@ -114,6 +124,7 @@ class Board(object):
 
     def check_status(self):
         #Return b or w or None
+        return None
         raise NotImplementedError()
 
     def board_from_move(self, move):
@@ -158,13 +169,13 @@ class Chess(object):
         assert(self.active == color)
 
         # Generate moves
-        moves = list()
+        moves = set()
         if piece == 'r' or piece == 'R':
             #TODO Figure out what loop I want for this?
-            moves.extend(self.generate_moves(color, start, 0, +1, 8))
-            moves.extend(self.generate_moves(color, start, 0, -1, 8))
-            moves.extend(self.generate_moves(color, start, +1, 0, 8))
-            moves.extend(self.generate_moves(color, start, -1, 0, 8))
+            moves.update(self.generate_moves(color, start, 0, +1, 8))
+            moves.update(self.generate_moves(color, start, 0, -1, 8))
+            moves.update(self.generate_moves(color, start, +1, 0, 8))
+            moves.update(self.generate_moves(color, start, -1, 0, 8))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
             rank_delta = 0
@@ -176,10 +187,10 @@ class Chess(object):
                 rank_delta = 1
                 if start.rank == 2:
                     starting_rank = True
-            moves.extend(self.generate_moves(color, start, rank_delta, 0, 1, False))
+            moves.update(self.generate_moves(color, start, rank_delta, 0, 1, False))
 
             if starting_rank:
-                moves.extend(self.generate_moves(color, start, 2 * rank_delta, 0, 1, False))
+                moves.update(self.generate_moves(color, start, 2 * rank_delta, 0, 1, False))
 
             #TODO Capturing moves...
         else:
@@ -189,7 +200,7 @@ class Chess(object):
         move_boards = zip(moves, map(self.board.board_from_move, moves))
 
         # Determine check, prune
-        valid_moves = [move_board[0] for move_board in move_boards if move_board[1].check_status() != self.active]
+        valid_moves = set([move_board[0] for move_board in move_boards if move_board[1].check_status() != self.active])
 
         return valid_moves
 
@@ -211,7 +222,8 @@ class Chess(object):
                     ends.append(position)
                 break
 
-        return [BasicMove(start, end) for end in ends]
+        moves = set([BasicMove(start, end) for end in ends])
+        return moves
 
     def move(self, move):
         assert(self.is_move_valid(move))
