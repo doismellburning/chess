@@ -176,6 +176,11 @@ class Chess(object):
             moves.update(self.generate_moves(color, start, 0, -1, 8))
             moves.update(self.generate_moves(color, start, +1, 0, 8))
             moves.update(self.generate_moves(color, start, -1, 0, 8))
+        elif piece == 'n' or piece == 'N':
+            for x in (-1, 1):
+                for y in (-2, 2):
+                    moves.update(self.generate_moves(color, start, x, y, 1))
+                    moves.update(self.generate_moves(color, start, y, x, 1))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
             rank_delta = 0

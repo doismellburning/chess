@@ -55,6 +55,8 @@ class TestChess(unittest.TestCase):
 
         f('a', 1, set())
         f('a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
+        f('b', 2, {BoardSquare('b', 3), BoardSquare('b', 4)})
+        f('b', 1, {BoardSquare('a', 3), BoardSquare('c', 3)})
 
     def test_square_adjustments(self):
         sq = BoardSquare('c', 3)
