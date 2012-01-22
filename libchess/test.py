@@ -27,7 +27,7 @@ class TestChess(unittest.TestCase):
         def expect_fail(file, rank):
             try:
                 BoardSquare(file, rank)
-                pass
+                self.fail("BoardSquare expected to have thrown InvalidSquareException for %s%d" % (file, rank))
             except InvalidSquareException:
                 pass
 
