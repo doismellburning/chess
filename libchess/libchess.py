@@ -86,18 +86,33 @@ class BasicMove(object):
         return hash(self.start) ^ hash(self.end)
 
 class Board(object):
-    def __init__(self, squares=None):
-        if squares is None:
+    def __init__(self, squares=None, fen=None):
+        if squares is not None:
+            assert(len(squares) == 8)
+            for rank_or_file_I_forget in squares:
+                assert(len(rank_or_file_I_forget) == 8)
+            self.squares = squares
+        elif fen is not None:
+            fen_lines = fen.split('/')
+            squares = []
+            for line in fen_lines:
+                row = []
+                for char in line:
+                    if char >= '1' and char <= '8': #TODO Replace with less grim "is_int"
+                        for x in xrange(int(char)):
+                            row.append(None)
+                    else:
+                        row.append(char)
+                assert(len(row) == 8)
+                squares.append(row)
+            assert(len(squares) == 8)
+            self.squares = squares
+        else:
             self.squares = [[None for i in xrange(8)] for j in xrange(8)]
             self.squares[0] = list('rnbqkbnr')
             self.squares[1] = ['p' for i in xrange(8)]
             self.squares[6] = ['P' for i in xrange(8)]
             self.squares[7] = list('RNBQKBNR')
-        else:
-            assert(len(squares) == 8)
-            for rank_or_file_I_forget in squares:
-                assert(len(rank_or_file_I_forget) == 8)
-            self.squares = squares
 
     def __str__(self):
         rows = list()
@@ -136,7 +151,7 @@ class Board(object):
         new_board_squares[end_coords[0]][end_coords[1]] = new_board_squares[start_coords[0]][start_coords[1]]
         new_board_squares[start_coords[0]][start_coords[1]] = None
 
-        return Board(new_board_squares)
+        return Board(squares=new_board_squares)
 
 
 class Chess(object):
@@ -150,7 +165,13 @@ class Chess(object):
         self.fullmove = 1
 
         if fen:
-            raise NotImplementedError()
+            (board_str, active, castling, en_passant_str, halfmove, fullmove) = fen.split(' ')
+            self.board = Board(fen=board_str)
+            self.active = active
+            self.castling = castling
+            self.en_passant = en_passant_str
+            self.halfmove = int(halfmove)
+            self.fullmove = int(fullmove)
 
     def fen(self):
         en_passant_str = self.en_passant or "-"
