@@ -267,12 +267,12 @@ class Chess(object):
             moves.update(self.generate_moves(color, start, +1, 0, 8))
             moves.update(self.generate_moves(color, start, -1, 0, 8))
         elif piece == 'n' or piece == 'N':
-            for rank_delta in (-1, 1):
-                for file_delta in (-2, 2):
-                    moves.update(self.generate_moves(color, start, rank_delta,
-                        file_delta, 1))
-                    moves.update(self.generate_moves(color, start, file_delta,
-                        rank_delta, 1))
+            for one in (-1, 1):
+                for two in (-2, 2):
+                    moves.update(self.generate_moves(color, start, one,
+                        two, 1))
+                    moves.update(self.generate_moves(color, start, two,
+                        one, 1))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
             rank_delta = 0
