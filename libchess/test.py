@@ -4,7 +4,7 @@ from libchess import Chess, BoardSquare, InvalidSquareException, BasicMove
 class TestChess(unittest.TestCase):
 
     STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    SIMPLE_QUEEN_FEN = "k7/8/8/8/8/8/8/3R4 w - - 0 1"
+    SIMPLE_ROOK_FEN = "k7/8/8/8/8/8/8/3R4 w - - 0 1"
     SIMPLE_BISHOP_FEN = "k7/8/8/8/8/8/8/3B4 w - - 0 1"
 
     def test_starting(self):
@@ -18,7 +18,7 @@ class TestChess(unittest.TestCase):
             self.assertEqual(chess.fen(), fen)
 
         test(self.STARTING_FEN)
-        test(self.SIMPLE_QUEEN_FEN)
+        test(self.SIMPLE_ROOK_FEN)
         #TODO More fens
 
     def test_squares(self):
