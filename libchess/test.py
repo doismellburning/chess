@@ -5,6 +5,7 @@ class TestChess(unittest.TestCase):
 
     STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     SIMPLE_QUEEN_FEN = "k7/8/8/8/8/8/8/3R4 w - - 0 1"
+    SIMPLE_BISHOP_FEN = "k7/8/8/8/8/8/8/3B4 w - - 0 1"
 
     def test_starting(self):
         chess = Chess()
@@ -50,15 +51,23 @@ class TestChess(unittest.TestCase):
     def test_valid_moves(self):
         chess = Chess()
 
-        def f(file, rank, ends):
+        def f(chess, file, rank, ends):
             start = BoardSquare(file, rank)
             moves = set([BasicMove(start, end) for end in ends])
             self.assertSetEqual(chess.valid_moves(start), moves)
 
-        f('a', 1, set())
-        f('a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
-        f('b', 2, {BoardSquare('b', 3), BoardSquare('b', 4)})
-        f('b', 1, {BoardSquare('a', 3), BoardSquare('c', 3)})
+        f(chess, 'a', 1, set())
+        f(chess, 'a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
+        f(chess, 'b', 2, {BoardSquare('b', 3), BoardSquare('b', 4)})
+        f(chess, 'b', 1, {BoardSquare('a', 3), BoardSquare('c', 3)})
+        f(chess, 'c', 1, set())
+        f(Chess(self.SIMPLE_BISHOP_FEN), 'd', 1, {BoardSquare('c', 2),
+                                                  BoardSquare('b', 3),
+                                                  BoardSquare('a', 4),
+                                                  BoardSquare('e', 2),
+                                                  BoardSquare('f', 3),
+                                                  BoardSquare('g', 4),
+                                                  BoardSquare('h', 5)})
 
     def test_square_adjustments(self):
         sq = BoardSquare('c', 3)

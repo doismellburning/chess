@@ -273,6 +273,11 @@ class Chess(object):
                         two, 1))
                     moves.update(self.generate_moves(color, start, two,
                         one, 1))
+        elif piece == 'b' or piece == 'B':
+            for one in (-1, 1):
+                for two in (-1, 1):
+                    moves.update(self.generate_moves(color, start, one,
+                        two, 8))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
             rank_delta = 0
