@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 """
 libchess.py: Python chess library by Kristian Glass (mail@doismellburning.co.uk)
 """
@@ -348,3 +350,22 @@ class Chess(object):
 
     def __str__(self):
         return self.fen()
+
+FEN_TO_UNICODE_MAP = {
+    'K': u'♕',
+    'Q': u'♔',
+    'R': u'♖',
+    'B': u'♗',
+    'N': u'♘',
+    'P': u'♙',
+    'k': u'♚',
+    'q': u'♛',
+    'r': u'♜',
+    'b': u'♝',
+    'n': u'♞',
+    'p': u'♟',
+    None: None,
+}
+
+def fen_to_unicode(piece):
+    return FEN_TO_UNICODE_MAP[piece]
