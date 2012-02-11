@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 """
-libchess.py: Python chess library by Kristian Glass (mail@doismellburning.co.uk)
+Python chess library by Kristian Glass (mail@doismellburning.co.uk)
 """
 
 import copy

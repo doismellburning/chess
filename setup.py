@@ -1,10 +1,10 @@
 from distutils.core import setup
 
-setup(name='libchess',
+setup(name='chess',
       description='Simple chess engine',
       author='Kristian Glass',
       author_email='libchess@doismellburning.co.uk',
-      url='https://github.com/doismellburning/libchess',
+      url='https://github.com/doismellburning/chess',
       version='0.1',
-      py_modules=['libchess'],
+      py_modules=['chess'],
       )

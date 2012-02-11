@@ -1,5 +1,5 @@
 import unittest
-from libchess import Chess, BoardSquare, InvalidSquareException, BasicMove
+from chess import Chess, BoardSquare, InvalidSquareException, BasicMove
 
 class TestChess(unittest.TestCase):
 
