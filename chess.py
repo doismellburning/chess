@@ -24,6 +24,12 @@ def colour_of_piece(piece):
     """
     Returns "w" or "b" depending on colour of piece string
 
+    >>> colour_of_piece('K')
+    'w'
+
+    >>> colour_of_piece('p')
+    'b'
+
     TODO Use piece / colour objects?
     """
     if "A" <= piece <= "Z":
