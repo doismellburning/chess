@@ -13,6 +13,13 @@ class InvalidSquareException(Exception):
     """
     pass
 
+class NoPieceAtSquareException(Exception):
+    """
+    Raised when trying to determine moves from a piece at a square with no
+    piece.
+    """
+    pass
+
 def colour_of_piece(piece):
     """
     Returns "w" or "b" depending on colour of piece string
@@ -254,7 +261,8 @@ class Chess(object):
         """
         piece = self.board.piece_at_board_square(start)
 
-        assert(piece != None)
+        if piece is None:
+            raise NoPieceAtSquareException('No piece at %s' % start)
 
         color = colour_of_piece(piece)
 

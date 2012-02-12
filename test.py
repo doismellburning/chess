@@ -1,5 +1,5 @@
 import unittest
-from chess import Chess, BoardSquare, InvalidSquareException, BasicMove
+from chess import Chess, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException
 
 class TestChess(unittest.TestCase):
 
@@ -68,6 +68,16 @@ class TestChess(unittest.TestCase):
                                                   BoardSquare('f', 3),
                                                   BoardSquare('g', 4),
                                                   BoardSquare('h', 5)})
+
+    def test_moving_no_piece(self):
+        chess = Chess()
+
+        try:
+            empty_square = BoardSquare('c', 5)
+            chess.valid_moves(empty_square)
+            self.fail('valid_moves expected to have raised NoPieceAtSquareException for moves from %s' % start)
+        except NoPieceAtSquareException:
+            pass
 
     def test_square_adjustments(self):
         sq = BoardSquare('c', 3)
