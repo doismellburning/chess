@@ -219,7 +219,7 @@ class Board(object):
         return Board(squares=new_board_squares)
 
 
-class Chess(object):
+class Game(object):
     """
     Represents a whole game of chess (board state plus additional game state
     such as turn)

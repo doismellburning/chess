@@ -1,5 +1,5 @@
 import unittest
-from chess import Chess, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException
+from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException
 
 class TestChess(unittest.TestCase):
 
@@ -8,14 +8,14 @@ class TestChess(unittest.TestCase):
     SIMPLE_BISHOP_FEN = "k7/8/8/8/8/8/8/3B4 w - - 0 1"
 
     def test_starting(self):
-        chess = Chess()
+        game = Game()
 
-        self.assertEqual(chess.fen(), self.STARTING_FEN)
+        self.assertEqual(game.fen(), self.STARTING_FEN)
 
     def test_constructor(self):
         def test(fen):
-            chess = Chess(fen)
-            self.assertEqual(chess.fen(), fen)
+            game = Game(fen)
+            self.assertEqual(game.fen(), fen)
 
         test(self.STARTING_FEN)
         test(self.SIMPLE_ROOK_FEN)
@@ -38,43 +38,43 @@ class TestChess(unittest.TestCase):
         expect_fail('a', -1)
 
     def test_square_fetch(self):
-        chess = Chess()
+        game = Game()
 
         def f(file, rank):
             sq = BoardSquare(file, rank)
-            return chess.board.piece_at_board_square(sq)
+            return game.board.piece_at_board_square(sq)
 
         self.assertEqual(f('d', 4), None)
         self.assertEqual(f('a', 1), "R")
         self.assertEqual(f('f', 7), "p")
 
     def test_valid_moves(self):
-        chess = Chess()
+        game = Game()
 
-        def f(chess, file, rank, ends):
+        def f(game, file, rank, ends):
             start = BoardSquare(file, rank)
             moves = set([BasicMove(start, end) for end in ends])
-            self.assertSetEqual(chess.valid_moves(start), moves)
+            self.assertSetEqual(game.valid_moves(start), moves)
 
-        f(chess, 'a', 1, set())
-        f(chess, 'a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
-        f(chess, 'b', 2, {BoardSquare('b', 3), BoardSquare('b', 4)})
-        f(chess, 'b', 1, {BoardSquare('a', 3), BoardSquare('c', 3)})
-        f(chess, 'c', 1, set())
-        f(Chess(self.SIMPLE_BISHOP_FEN), 'd', 1, {BoardSquare('c', 2),
-                                                  BoardSquare('b', 3),
-                                                  BoardSquare('a', 4),
-                                                  BoardSquare('e', 2),
-                                                  BoardSquare('f', 3),
-                                                  BoardSquare('g', 4),
-                                                  BoardSquare('h', 5)})
+        f(game, 'a', 1, set())
+        f(game, 'a', 2, {BoardSquare('a', 3), BoardSquare('a', 4)})
+        f(game, 'b', 2, {BoardSquare('b', 3), BoardSquare('b', 4)})
+        f(game, 'b', 1, {BoardSquare('a', 3), BoardSquare('c', 3)})
+        f(game, 'c', 1, set())
+        f(Game(self.SIMPLE_BISHOP_FEN), 'd', 1, {BoardSquare('c', 2),
+                                                 BoardSquare('b', 3),
+                                                 BoardSquare('a', 4),
+                                                 BoardSquare('e', 2),
+                                                 BoardSquare('f', 3),
+                                                 BoardSquare('g', 4),
+                                                 BoardSquare('h', 5)})
 
     def test_moving_no_piece(self):
-        chess = Chess()
+        game = Game()
 
         try:
             empty_square = BoardSquare('c', 5)
-            chess.valid_moves(empty_square)
+            game.valid_moves(empty_square)
             self.fail('valid_moves expected to have raised NoPieceAtSquareException for moves from %s' % start)
         except NoPieceAtSquareException:
             pass
