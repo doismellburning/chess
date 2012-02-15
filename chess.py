@@ -44,10 +44,17 @@ class BoardSquare(object):
     avoid collision; in the case of rank, for consistency
     """
 
-    def __init__(self, file_letter, rank_number):
-        """
-        TODO Consider changing this to just take "e5"?
-        """
+    def __init__(self, *args):
+        if len(args) == 1:
+            file_rank = args[0]
+            file_letter = file_rank[0]
+            rank_number = int(file_rank[1])
+        elif len(args) == 2:
+            file_letter = args[0]
+            rank_number = int(args[1])
+        else:
+            raise TypeError()
+
         if rank_number < 1 or rank_number > 8:
             raise InvalidSquareException('"%d" is not a valid rank' %
                                          rank_number)
