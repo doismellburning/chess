@@ -39,7 +39,9 @@ def colour_of_piece(piece):
 
 class BoardSquare(object):
     """
-    Small wrapper around what is essentially a (file,rank) pair
+    Small wrapper around what is essentially a (file,rank) pair. Note that
+    trailing underscores are used for member names; in the case of file, to
+    avoid collision; in the case of rank, for consistency
     """
 
     def __init__(self, file_letter, rank_number):
@@ -52,8 +54,8 @@ class BoardSquare(object):
         if file_letter < "a" or file_letter > "h":
             raise InvalidSquareException('"%s" is not a valid file' %
                                          file_letter)
-        self.rank = rank_number
-        self.file = file_letter
+        self.rank_ = rank_number
+        self.file_ = file_letter
 
     def to_board_coordinates(self):
         """
@@ -62,12 +64,12 @@ class BoardSquare(object):
 
         TODO Move to Board?
         """
-        fst = 8 - self.rank
-        snd = ord(self.file) - ord('a')
+        fst = 8 - self.rank_
+        snd = ord(self.file_) - ord('a')
         return (fst, snd)
 
     def __str__(self):
-        return "%s%d" % (self.file, self.rank)
+        return "%s%d" % (self.file_, self.rank_)
 
     def delta(self, file_delta, rank_delta):
         """
@@ -75,18 +77,18 @@ class BoardSquare(object):
         if that would be outside of the board
         """
         try:
-            new_square = BoardSquare(chr(ord(self.file) + file_delta),
-                self.rank + rank_delta)
+            new_square = BoardSquare(chr(ord(self.file_) + file_delta),
+                self.rank_ + rank_delta)
             return new_square
         except InvalidSquareException:
             #Boom, tried to move beyond limits
             return None
 
     def __eq__(self, other):
-        return self.rank == other.rank and self.file == other.file
+        return self.rank_ == other.rank_ and self.file_ == other.file_
 
     def __hash__(self):
-        return hash(self.rank) ^ hash(self.file)
+        return hash(self.rank_) ^ hash(self.file_)
 
 
 class CastlingState(object):
@@ -299,11 +301,11 @@ class Game(object):
             rank_delta = 0
             if piece == 'p':
                 rank_delta = -1
-                if start.rank == 7:
+                if start.rank_ == 7:
                     starting_rank = True
             if piece == 'P':
                 rank_delta = 1
-                if start.rank == 2:
+                if start.rank_ == 2:
                     starting_rank = True
             moves.update(self.generate_moves(color, start, rank_delta, 0, 1,
                 False))
