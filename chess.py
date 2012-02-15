@@ -268,7 +268,7 @@ class Game(object):
         Determines validity of the given move with respect to the game
         """
         #TODO Check turn etc. - or should valid_moves?
-        return move in self.valid_moves(move.start())
+        return move in self.valid_moves(move.start)
 
     def valid_moves(self, start):
         """
