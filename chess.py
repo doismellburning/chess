@@ -343,6 +343,7 @@ class Game(object):
                     if one == two == 0:
                         continue
                     moves.update(self.generate_moves(color, start, one, two, 1))
+            #TODO Castling
         else:
             raise NotImplementedError()
 
@@ -388,6 +389,8 @@ class Game(object):
         new_game = Game(self.fen())
         new_game.board = new_game.board.board_from_move(move)
 
+        #TODO Castling
+        #TODO Promotion
         #TODO Update check
         #TODO Update en passant
 
