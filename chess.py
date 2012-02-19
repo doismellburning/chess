@@ -363,7 +363,22 @@ class Game(object):
     def move(self, move):
         assert(self.is_move_valid(move))
 
-        raise NotImplementedError()
+        new_game = Game(self.fen())
+        new_game.board = new_game.board.board_from_move(move)
+
+        #TODO Update Castling
+        #TODO Update halfmove counter
+        #TODO Update fullmove counter
+        #TODO Update check
+        #TODO Update en passant
+
+        assert(self.active in ('b', 'w'))
+        if self.active == 'b':
+            new_game.active = 'w'
+        elif self.active == 'w':
+            new_game.active = 'b'
+
+        return new_game
 
     def display_move(self, move):
         assert(self.is_move_valid(move))

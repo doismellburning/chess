@@ -87,5 +87,12 @@ class TestChess(unittest.TestCase):
         self.assertIsNone(sq.delta(-10, -10))
         self.assertEqual(sq.delta(-1, -1), BoardSquare('b2'))
 
+    def test_move(self):
+        game = Game()
+
+        new_game = game.move(BasicMove(BoardSquare('a2'), BoardSquare('a4')))
+
+        self.assertEqual(new_game.fen(), "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1")
+
 if __name__ == '__main__':
     unittest.main()
