@@ -323,6 +323,10 @@ class Game(object):
                 False))
 
             #TODO Capturing moves...
+        elif piece == 'k' or piece == 'K':
+            for one in (-1, 1):
+                for two in (-1, 1):
+                    moves.update(self.generate_moves(color, start, one, two, 1))
         else:
             raise NotImplementedError()
 
