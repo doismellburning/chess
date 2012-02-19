@@ -4,6 +4,7 @@ from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceA
 class TestChess(unittest.TestCase):
 
     STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    PAWNLESS_FEN = "rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1"
     SIMPLE_ROOK_FEN = "k7/8/8/8/8/8/8/3R4 w - - 0 1"
     SIMPLE_BISHOP_FEN = "k7/8/8/8/8/8/8/3B4 w - - 0 1"
 
@@ -120,6 +121,17 @@ class TestChess(unittest.TestCase):
         self.assertEqual(game.halfmove, 0)
         self.assertEqual(game.fullmove, 3)
         #TODO Full check of FEN?
+
+    def test_castling(self):
+        game = Game(self.PAWNLESS_FEN)
+
+        self.assertEqual(game.castling.fen(), 'KQkq')
+        game = game.move(BasicMove(BoardSquare('a1'), BoardSquare('a2')))
+        self.assertEqual(game.castling.fen(), 'Kkq')
+        game = game.move(BasicMove(BoardSquare('e8'), BoardSquare('e7')))
+        self.assertEqual(game.castling.fen(), 'K')
+        game = game.move(BasicMove(BoardSquare('e1'), BoardSquare('e2')))
+        self.assertEqual(game.castling.fen(), '-')
 
 if __name__ == '__main__':
     unittest.main()

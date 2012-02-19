@@ -100,15 +100,28 @@ class BoardSquare(object):
 
 class CastlingState(object):
     """
-    See FES notation - tracks what castling is still possible
+    See FEN - tracks what castling is still possible
     """
-    def __init__(self):
+    def __init__(self, fen=None):
         self.white_kingside = True
         self.white_queenside = True
         self.black_kingside = True
         self.black_queenside = True
 
+        if fen is not None:
+            if 'K' not in fen:
+                self.white_kingside = False
+            if 'Q' not in fen:
+                self.white_queenside = False
+            if 'k' not in fen:
+                self.black_kingside = False
+            if 'q' not in fen:
+                self.black_queenside = False
+
     def __str__(self):
+        return self.fen()
+
+    def fen(self):
         retval = ""
 
         if self.white_kingside:
@@ -247,7 +260,7 @@ class Game(object):
                 fen.split(' ')
             self.board = Board(fen=board_str)
             self.active = active
-            self.castling = castling
+            self.castling = CastlingState(castling)
             self.en_passant = en_passant
             self.halfmove = int(halfmove)
             self.fullmove = int(fullmove)
@@ -267,7 +280,8 @@ class Game(object):
         """
         Determines validity of the given move with respect to the game
         """
-        return move in self.valid_moves(move.start)
+        #print [str(move) for move in self.valid_moves(move.start)]
+        return bool(move in self.valid_moves(move.start))
 
     def valid_moves(self, start):
         """
@@ -324,8 +338,10 @@ class Game(object):
 
             #TODO Capturing moves...
         elif piece == 'k' or piece == 'K':
-            for one in (-1, 1):
-                for two in (-1, 1):
+            for one in (-1, 0, 1):
+                for two in (-1, 0, 1):
+                    if one == two == 0:
+                        continue
                     moves.update(self.generate_moves(color, start, one, two, 1))
         else:
             raise NotImplementedError()
@@ -372,9 +388,6 @@ class Game(object):
         new_game = Game(self.fen())
         new_game.board = new_game.board.board_from_move(move)
 
-        #TODO Update Castling
-        #TODO Update halfmove counter
-        #TODO Update fullmove counter
         #TODO Update check
         #TODO Update en passant
 
@@ -390,6 +403,24 @@ class Game(object):
             new_game.halfmove = 0
         else:
             new_game.halfmove += 1
+
+        #Loose but sufficient checks for castling
+        if piece == 'r':
+            if move.start.file_ == 'a':
+                new_game.castling.black_queenside = False
+            elif move.start.file_ == 'h':
+                new_game.castling.black_kingside = False
+        elif piece == 'k':
+            new_game.castling.black_queenside = False
+            new_game.castling.black_kingside = False
+        elif piece == 'R':
+            if move.start.file_ == 'a':
+                new_game.castling.white_queenside = False
+            elif move.start.file_ == 'h':
+                new_game.castling.white_kingside = False
+        elif piece == 'K':
+            new_game.castling.white_queenside = False
+            new_game.castling.white_kingside = False
 
         return new_game
 
