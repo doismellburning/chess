@@ -102,5 +102,15 @@ class TestChess(unittest.TestCase):
 
         self.assertEqual(moves, set())
 
+    def test_fullmove_counter(self):
+        game = Game(self.STARTING_FEN)
+
+        self.assertEqual(game.fullmove, 1)
+        game = game.move(BasicMove(BoardSquare('a2'), BoardSquare('a4')))
+        self.assertEqual(game.fullmove, 1)
+        game = game.move(BasicMove(BoardSquare('b8'), BoardSquare('a6')))
+        self.assertEqual(game.fullmove, 2)
+        #TODO Full check of FEN?
+
 if __name__ == '__main__':
     unittest.main()

@@ -377,6 +377,7 @@ class Game(object):
         assert(self.active in ('b', 'w'))
         if self.active == 'b':
             new_game.active = 'w'
+            new_game.fullmove += 1
         elif self.active == 'w':
             new_game.active = 'b'
 
