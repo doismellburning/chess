@@ -313,12 +313,14 @@ class Game(object):
                 rank_delta = 1
                 if start.rank_ == 2:
                     starting_rank = True
-            moves.update(self.generate_moves(color, start, rank_delta, 0, 1,
-                False))
 
             if starting_rank:
-                moves.update(self.generate_moves(color, start, 2 * rank_delta,
-                    0, 1, False))
+                limit = 2
+            else:
+                limit = 1
+
+            moves.update(self.generate_moves(color, start, rank_delta, 0, limit,
+                False))
 
             #TODO Capturing moves...
         else:

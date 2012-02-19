@@ -94,5 +94,13 @@ class TestChess(unittest.TestCase):
 
         self.assertEqual(new_game.fen(), "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1")
 
+    def test_pawn_starting_move(self):
+        fen = "rnbqkbnr/pppppppp/8/8/8/Pr6/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+        game = Game(fen)
+        moves = game.valid_moves(BoardSquare('b2'))
+
+        self.assertEqual(moves, set())
+
 if __name__ == '__main__':
     unittest.main()
