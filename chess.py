@@ -381,6 +381,12 @@ class Game(object):
         elif self.active == 'w':
             new_game.active = 'b'
 
+        piece = self.board.piece_at_board_square(move.start)
+        if piece == 'p' or piece == 'P':
+            new_game.halfmove = 0
+        else:
+            new_game.halfmove += 1
+
         return new_game
 
     def display_move(self, move):
