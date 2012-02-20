@@ -9,7 +9,7 @@ import copy
 
 class InvalidSquareException(Exception):
     """
-    Raised when trying to represent an invalid (file,rank) pair
+    Raised when trying to represent an invalid (file,rank) pair.
     """
     pass
 
@@ -17,6 +17,19 @@ class NoPieceAtSquareException(Exception):
     """
     Raised when trying to determine moves from a piece at a square with no
     piece.
+    """
+    pass
+
+class NotYourTurnException(Exception):
+    """
+    Raised when attempting to move, or find valid moves of, a piece of the wrong
+    colour by turn.
+    """
+    pass
+
+class InvalidMoveException(Exception):
+    """
+    Raised when attempting to make an invalid move.
     """
     pass
 
@@ -223,7 +236,7 @@ class Board(object):
         Returns the check status (a colour or None) of the board
         """
         return None
-        raise NotImplementedError()
+        #TODO raise NotImplementedError()
 
     def board_from_move(self, move):
         """
@@ -294,7 +307,8 @@ class Game(object):
 
         color = colour_of_piece(piece)
 
-        assert(self.active == color)
+        if self.active != color:
+            raise NotYourTurnException()
 
         # Generate moves
         moves = set()
@@ -384,7 +398,8 @@ class Game(object):
         return moves
 
     def move(self, move):
-        assert(self.is_move_valid(move))
+        if not self.is_move_valid(move):
+            raise InvalidMoveException()
 
         new_game = Game(self.fen())
         new_game.board = new_game.board.board_from_move(move)
@@ -428,7 +443,8 @@ class Game(object):
         return new_game
 
     def display_move(self, move):
-        assert(self.is_move_valid(move))
+        if not self.is_move_valid(move):
+            raise InvalidMoveException()
 
         raise NotImplementedError()
 
