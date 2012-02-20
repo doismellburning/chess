@@ -452,8 +452,8 @@ class Game(object):
         return self.fen()
 
 FEN_TO_UNICODE_MAP = {
-    'K': u'♕',
-    'Q': u'♔',
+    'K': u'♔',
+    'Q': u'♕',
     'R': u'♖',
     'B': u'♗',
     'N': u'♘',
