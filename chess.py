@@ -358,6 +358,12 @@ class Game(object):
                         continue
                     moves.update(self.generate_moves(color, start, one, two, 1))
             #TODO Castling
+        elif piece == 'q' or piece == 'Q':
+            for one in (-1, 0, 1):
+                for two in (-1, 0, 1):
+                    if one == two == 0:
+                        continue
+                    moves.update(self.generate_moves(color, start, one, two, 8))
         else:
             raise NotImplementedError()
 
