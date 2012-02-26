@@ -52,15 +52,14 @@ class TestChess(unittest.TestCase):
     def test_valid_moves(self):
         game = Game()
 
-        def f(game, file_rank, ends):
-            start = BoardSquare(file_rank)
+        def f(game, start, ends):
             moves = set([BasicMove(start, end) for end in ends])
             self.assertSetEqual(game.valid_moves(start), moves)
 
         f(game, 'a1', set())
-        f(game, 'a2', {BoardSquare('a3'), BoardSquare('a4')})
-        f(game, 'b2', {BoardSquare('b3'), BoardSquare('b4')})
-        f(game, 'b1', {BoardSquare('a3'), BoardSquare('c3')})
+        f(game, 'a2', {'a3', 'a4'})
+        f(game, 'b2', {'b3', 'b4'})
+        f(game, 'b1', {'a3', 'c3'})
         f(game, 'c1', set())
         f(Game(self.SIMPLE_BISHOP_FEN), 'd1', {BoardSquare('c2'),
                                                BoardSquare('b3'),
@@ -74,7 +73,7 @@ class TestChess(unittest.TestCase):
         game = Game()
 
         try:
-            empty_square = BoardSquare('c5')
+            empty_square = 'c5'
             game.valid_moves(empty_square)
             self.fail('valid_moves expected to have raised NoPieceAtSquareException for moves from %s' % start)
         except NoPieceAtSquareException:
@@ -91,7 +90,7 @@ class TestChess(unittest.TestCase):
     def test_move(self):
         game = Game()
 
-        new_game = game.move(BasicMove(BoardSquare('a2'), BoardSquare('a4')))
+        new_game = game.move(BasicMove('a2', 'a4'))
 
         self.assertEqual(new_game.fen(), "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1")
 
@@ -99,7 +98,7 @@ class TestChess(unittest.TestCase):
         fen = "rnbqkbnr/pppppppp/8/8/8/Pr6/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
         game = Game(fen)
-        moves = game.valid_moves(BoardSquare('b2'))
+        moves = game.valid_moves('b2')
 
         self.assertEqual(moves, set())
 
@@ -108,16 +107,16 @@ class TestChess(unittest.TestCase):
 
         self.assertEqual(game.halfmove, 0)
         self.assertEqual(game.fullmove, 1)
-        game = game.move(BasicMove(BoardSquare('e2'), BoardSquare('e4')))
+        game = game.move(BasicMove('e2', 'e4'))
         self.assertEqual(game.halfmove, 0)
         self.assertEqual(game.fullmove, 1)
-        game = game.move(BasicMove(BoardSquare('c7'), BoardSquare('c5')))
+        game = game.move(BasicMove('c7', 'c5'))
         self.assertEqual(game.halfmove, 0)
         self.assertEqual(game.fullmove, 2)
-        game = game.move(BasicMove(BoardSquare('g1'), BoardSquare('f3')))
+        game = game.move(BasicMove('g1', 'f3'))
         self.assertEqual(game.halfmove, 1)
         self.assertEqual(game.fullmove, 2)
-        game = game.move(BasicMove(BoardSquare('a7'), BoardSquare('a5')))
+        game = game.move(BasicMove('a7', 'a5'))
         self.assertEqual(game.halfmove, 0)
         self.assertEqual(game.fullmove, 3)
         #TODO Full check of FEN?
@@ -126,11 +125,11 @@ class TestChess(unittest.TestCase):
         game = Game(self.PAWNLESS_FEN)
 
         self.assertEqual(game.castling.fen(), 'KQkq')
-        game = game.move(BasicMove(BoardSquare('a1'), BoardSquare('a2')))
+        game = game.move(BasicMove('a1', 'a2'))
         self.assertEqual(game.castling.fen(), 'Kkq')
-        game = game.move(BasicMove(BoardSquare('e8'), BoardSquare('e7')))
+        game = game.move(BasicMove('e8', 'e7'))
         self.assertEqual(game.castling.fen(), 'K')
-        game = game.move(BasicMove(BoardSquare('e1'), BoardSquare('e2')))
+        game = game.move(BasicMove('e1', 'e2'))
         self.assertEqual(game.castling.fen(), '-')
 
 if __name__ == '__main__':

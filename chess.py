@@ -159,6 +159,11 @@ class BasicMove(object):
     Thin wrapper around a (start,end) pair of board squares
     """
     def __init__(self, start, end):
+        if not isinstance(start, BoardSquare):
+            start = BoardSquare(start)
+        if not isinstance(end, BoardSquare):
+            end = BoardSquare(end)
+
         self.start = start
         self.end = end
 
@@ -300,6 +305,9 @@ class Game(object):
         """
         Returns the set of moves that the piece at the given square can make
         """
+        if not isinstance(start, BoardSquare):
+            start = BoardSquare(start)
+
         piece = self.board.piece_at_board_square(start)
 
         if piece is None:
