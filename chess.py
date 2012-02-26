@@ -193,7 +193,6 @@ class Board(object):
             for line in fen_lines:
                 row = []
                 for char in line:
-                    #TODO Replace with less grim "is_int"
                     if char >= '1' and char <= '8':
                         for _ in xrange(int(char)):
                             row.append(None)
@@ -249,7 +248,6 @@ class Board(object):
         """
         new_board_squares = copy.deepcopy(self.squares)
 
-        #TODO Move this into a board.move()?
         start_coords = move.start.to_board_coordinates()
         end_coords = move.end.to_board_coordinates()
         new_board_squares[end_coords[0]][end_coords[1]] = \
@@ -418,7 +416,6 @@ class Game(object):
         new_game = Game(self.fen())
         new_game.board = new_game.board.board_from_move(move)
 
-        #TODO Castling
         #TODO Promotion
         #TODO Update check
         #TODO Update en passant
