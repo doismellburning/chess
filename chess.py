@@ -288,7 +288,10 @@ class Game(object):
             self.board = Board(fen=board_str)
             self.active = active
             self.castling = CastlingState(castling)
-            self.en_passant = en_passant
+            if en_passant == "-":
+                self.en_passant = None
+            else:
+                self.en_passant = BoardSquare(en_passant)
             self.halfmove = int(halfmove)
             self.fullmove = int(fullmove)
 
@@ -432,7 +435,6 @@ class Game(object):
 
         #TODO Promotion
         #TODO Update check
-        #TODO Update en passant
 
         assert(self.active in ('b', 'w'))
         if self.active == 'b':
@@ -441,9 +443,14 @@ class Game(object):
         elif self.active == 'w':
             new_game.active = 'b'
 
+        new_game.en_passant = None
         piece = self.board.piece_at_board_square(move.start)
         if piece == 'p' or piece == 'P':
             new_game.halfmove = 0
+            if move.end.rank_ - move.start.rank_ == 2:
+                new_game.en_passant = move.start.delta(0, 1)
+            elif move.end.rank_ - move.start.rank_ == -2:
+                new_game.en_passant = move.start.delta(0, -1)
         else:
             new_game.halfmove += 1
 

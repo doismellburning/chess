@@ -92,7 +92,7 @@ class TestChess(unittest.TestCase):
 
         new_game = game.move(BasicMove('a2', 'a4'))
 
-        self.assertEqual(new_game.fen(), "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1")
+        self.assertEqual(new_game.fen(), "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1")
 
     def test_pawn_starting_move(self):
         fen = "rnbqkbnr/pppppppp/8/8/8/Pr6/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -133,6 +133,19 @@ class TestChess(unittest.TestCase):
         self.assertEqual(game.halfmove, 0)
         self.assertEqual(game.fullmove, 3)
         #TODO Full check of FEN?
+
+    def test_en_passant_updating(self):
+        game = Game(self.STARTING_FEN)
+
+        self.assertEqual(game.en_passant, None)
+        game = game.move(BasicMove('e2', 'e4'))
+        self.assertEqual(game.en_passant, BoardSquare('e3'))
+        game = game.move(BasicMove('c7', 'c5'))
+        self.assertEqual(game.en_passant, BoardSquare('c6'))
+        game = game.move(BasicMove('g1', 'f3'))
+        self.assertEqual(game.en_passant, None)
+        game = game.move(BasicMove('a7', 'a5'))
+        self.assertEqual(game.en_passant, BoardSquare('a6'))
 
     def test_castling(self):
         game = Game(self.PAWNLESS_FEN)
