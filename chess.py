@@ -111,6 +111,9 @@ class BoardSquare(object):
             return None
 
     def __eq__(self, other):
+        if other is None:
+            return False
+
         return self.rank_ == other.rank_ and self.file_ == other.file_
 
     def __hash__(self):
@@ -253,7 +256,7 @@ class Board(object):
         return None
         #TODO raise NotImplementedError()
 
-    def board_from_move(self, move):
+    def board_from_move(self, move, en_passant):
         """
         Returns a new board to which the supplied move has been applied
         """
@@ -264,6 +267,16 @@ class Board(object):
         new_board_squares[end_coords[0]][end_coords[1]] = \
             new_board_squares[start_coords[0]][start_coords[1]]
         new_board_squares[start_coords[0]][start_coords[1]] = None
+
+        if move.end == en_passant:
+            #Feels like a bit of a hack, but can only be one of two ranks...
+            if en_passant.rank_ == 3:
+                taken_pawn_coords = move.end.delta(0, 1).to_board_coordinates()
+            elif en_passant.rank_ == 6:
+                taken_pawn_coords = move.end.delta(0, -1).to_board_coordinates()
+            else:
+                raise Exception() #TODO
+            new_board_squares[taken_pawn_coords[0]][taken_pawn_coords[1]] = None
 
         return Board(squares=new_board_squares)
 
@@ -372,7 +385,7 @@ class Game(object):
 
             for one in (-1, 1):
                 moves.update(self.generate_moves(color, start, rank_delta, one,
-                    1, must_take=True))
+                    1, must_take=True, can_en_passant=True))
         elif piece == 'k' or piece == 'K':
             for one in (-1, 0, 1):
                 for two in (-1, 0, 1):
@@ -390,7 +403,9 @@ class Game(object):
             raise NotImplementedError()
 
         # Generate potential boards
-        move_boards = zip(moves, map(self.board.board_from_move, moves))
+        move_boards = zip(moves,
+            [self.board.board_from_move(move, self.en_passant) for move in
+             moves])
 
         # Determine check, prune
         valid_moves = set([move_board[0] for move_board in move_boards if
@@ -399,7 +414,7 @@ class Game(object):
         return valid_moves
 
     def generate_moves(self, color, start, rank_delta, file_delta, limit,
-                       can_take=True, must_take=False):
+                       can_take=True, must_take=False, can_en_passant=False):
         """
         TODO Document this in a way that doesn't feel silly
         """
@@ -416,7 +431,8 @@ class Game(object):
             end_piece = self.board.piece_at_board_square(position)
 
             if end_piece is None:
-                if not must_take:
+                if (not must_take) or (can_en_passant and
+                                       position == self.en_passant):
                     ends.append(position)
             else:
                 if can_take and colour_of_piece(end_piece) != color:
@@ -431,7 +447,7 @@ class Game(object):
             raise InvalidMoveException()
 
         new_game = Game(self.fen())
-        new_game.board = new_game.board.board_from_move(move)
+        new_game.board = new_game.board.board_from_move(move, self.en_passant)
 
         #TODO Promotion
         #TODO Update check

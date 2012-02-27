@@ -147,6 +147,15 @@ class TestChess(unittest.TestCase):
         game = game.move(BasicMove('a7', 'a5'))
         self.assertEqual(game.en_passant, BoardSquare('a6'))
 
+    def test_en_passant_taking(self):
+        game = Game('rnbqkbnr/pppppppp/8/8/p7/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+
+        game = game.move(BasicMove('b2', 'b4'))
+        self.assertEqual(game.en_passant, BoardSquare('b3'))
+        game = game.move(BasicMove('a4', 'b3'))
+        self.assertEqual(game.en_passant, None)
+        self.assertEqual(game.board.piece_at_board_square(BoardSquare('b4')), None)
+
     def test_castling(self):
         game = Game(self.PAWNLESS_FEN)
 
