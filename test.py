@@ -102,6 +102,19 @@ class TestChess(unittest.TestCase):
 
         self.assertEqual(moves, set())
 
+    def test_pawn_taking(self):
+        fen = "rnbqkbnr/pppppppp/8/8/8/Pr6/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+        game = Game(fen)
+
+        def f(start, ends):
+            moves = game.valid_moves(start)
+            self.assertEqual(moves,
+                set([BasicMove(start, end) for end in ends]))
+
+        f('a2', ['b3'])
+        f('c2', ['b3', 'c3', 'c4'])
+
     def test_move_counters(self):
         game = Game(self.STARTING_FEN)
 

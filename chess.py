@@ -365,9 +365,11 @@ class Game(object):
                 limit = 1
 
             moves.update(self.generate_moves(color, start, rank_delta, 0, limit,
-                False))
+                can_take=False))
 
-            #TODO Capturing moves...
+            for one in (-1, 1):
+                moves.update(self.generate_moves(color, start, rank_delta, one,
+                    1, must_take=True))
         elif piece == 'k' or piece == 'K':
             for one in (-1, 0, 1):
                 for two in (-1, 0, 1):
@@ -394,7 +396,7 @@ class Game(object):
         return valid_moves
 
     def generate_moves(self, color, start, rank_delta, file_delta, limit,
-                       can_take=True):
+                       can_take=True, must_take=False):
         """
         TODO Document this in a way that doesn't feel silly
         """
@@ -411,7 +413,8 @@ class Game(object):
             end_piece = self.board.piece_at_board_square(position)
 
             if end_piece is None:
-                ends.append(position)
+                if not must_take:
+                    ends.append(position)
             else:
                 if can_take and colour_of_piece(end_piece) != color:
                     ends.append(position)
