@@ -88,6 +88,12 @@ class BoardSquare(object):
         snd = ord(self.file_) - ord('a')
         return (fst, snd)
 
+    def __repr__(self):
+        return '%s.%s(%r, %r)' % (self.__class__.__module__,
+                                  self.__class__.__name__,
+                                  self.file_,
+                                  self.rank_)
+
     def __str__(self):
         return "%s%d" % (self.file_, self.rank_)
 
@@ -167,6 +173,11 @@ class BasicMove(object):
         self.start = start
         self.end = end
 
+    def __repr__(self):
+        return '%s.%s(%r, %r)' % (self.__class__.__module__,
+                                  self.__class__.__name__,
+                                  self.start,
+                                  self.end)
     def __str__(self):
         return "(%s -> %s)" % (self.start, self.end)
 
