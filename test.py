@@ -1,5 +1,5 @@
 import unittest
-from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException
+from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException, MoveMissingPromotionException
 
 class TestChess(unittest.TestCase):
 
@@ -166,6 +166,18 @@ class TestChess(unittest.TestCase):
         self.assertEqual(game.castling.fen(), 'K')
         game = game.move(BasicMove('e1', 'e2'))
         self.assertEqual(game.castling.fen(), '-')
+
+    def test_promotion(self):
+        game = Game('4k3/P7/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+
+        try:
+            game = game.move(BasicMove('a7', 'a8'))
+            self.assertFail('Should not accept promotion move without promotion data')
+        except MoveMissingPromotionException:
+            pass
+
+        game = game.move(BasicMove('a7', 'a8', 'Q'))
+        self.assertEqual(game.fen(), 'Q3k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
 
 if __name__ == '__main__':
     unittest.main()

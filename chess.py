@@ -33,6 +33,13 @@ class InvalidMoveException(Exception):
     """
     pass
 
+class MoveMissingPromotionException(Exception):
+    """
+    Raised when a move would take a pawn to the end rank, but includes no
+    promotion data
+    """
+    pass
+
 def colour_of_piece(piece):
     """
     Returns "w" or "b" depending on colour of piece string
@@ -269,8 +276,11 @@ class Board(object):
 
         start_coords = move.start.to_board_coordinates()
         end_coords = move.end.to_board_coordinates()
-        new_board_squares[end_coords[0]][end_coords[1]] = \
-            new_board_squares[start_coords[0]][start_coords[1]]
+        if move.promotion is not None:
+            piece = move.promotion
+        else:
+            piece = new_board_squares[start_coords[0]][start_coords[1]]
+        new_board_squares[end_coords[0]][end_coords[1]] = piece
         new_board_squares[start_coords[0]][start_coords[1]] = None
 
         if move.end == en_passant:
@@ -451,10 +461,18 @@ class Game(object):
         if not self.is_move_valid(move):
             raise InvalidMoveException()
 
+        piece = self.board.piece_at_board_square(move.start)
+
+        #If we're trying to move pawn to end rank, make sure we have promotion
+        #data
+        if (piece == 'p' and move.end.rank_ == 1) or (
+            piece == 'P' and move.end.rank_ == 8):
+            if move.promotion is None:
+                raise MoveMissingPromotionException()
+
         new_game = Game(self.fen())
         new_game.board = new_game.board.board_from_move(move, self.en_passant)
 
-        #TODO Promotion
         #TODO Update check
 
         assert(self.active in ('b', 'w'))
@@ -465,7 +483,6 @@ class Game(object):
             new_game.active = 'b'
 
         new_game.en_passant = None
-        piece = self.board.piece_at_board_square(move.start)
         if piece == 'p' or piece == 'P':
             new_game.halfmove = 0
             if move.end.rank_ - move.start.rank_ == 2:
