@@ -167,7 +167,7 @@ class BasicMove(object):
     """
     Thin wrapper around a (start,end) pair of board squares
     """
-    def __init__(self, start, end):
+    def __init__(self, start, end, promotion=None):
         if not isinstance(start, BoardSquare):
             start = BoardSquare(start)
         if not isinstance(end, BoardSquare):
@@ -175,14 +175,19 @@ class BasicMove(object):
 
         self.start = start
         self.end = end
+        self.promotion = promotion
 
     def __repr__(self):
-        return '%s.%s(%r, %r)' % (self.__class__.__module__,
-                                  self.__class__.__name__,
-                                  self.start,
-                                  self.end)
+        return '%s.%s(%r, %r, %r)' % (self.__class__.__module__,
+                                      self.__class__.__name__,
+                                      self.start,
+                                      self.end,
+                                      self.promotion)
     def __str__(self):
-        return "(%s -> %s)" % (self.start, self.end)
+        string = "(%s -> %s)" % (self.start, self.end)
+        if self.promotion is not None:
+            string += " -> %s" % self.promotion
+        return string
 
     def __eq__(self, other):
         return self.start.__eq__(other.start) and self.end.__eq__(other.end)
