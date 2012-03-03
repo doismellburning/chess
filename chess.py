@@ -258,6 +258,8 @@ class Board(object):
         """
         Returns (currently a string) representing the piece at the given square
         """
+        if not isinstance(board_square, BoardSquare):
+            board_square = BoardSquare(board_square)
         coords = board_square.to_board_coordinates()
         return self.squares[coords[0]][coords[1]]
 
