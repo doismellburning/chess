@@ -285,6 +285,28 @@ class Board(object):
         new_board_squares[end_coords[0]][end_coords[1]] = piece
         new_board_squares[start_coords[0]][start_coords[1]] = None
 
+        #Castling... (consider a refactor)
+        if piece == 'k' or piece == 'K':
+            if abs(ord(move.end.file_) - ord(move.start.file_)) == 2:
+                #Grim...
+                if (move.end == BoardSquare('c1')):
+                    rook_from = BoardSquare('a1')
+                    rook_to = BoardSquare('d1')
+                elif (move.end == BoardSquare('g1')):
+                    rook_from = BoardSquare('h1')
+                    rook_to = BoardSquare('f1')
+                elif (move.end == BoardSquare('c8')):
+                    rook_from = BoardSquare('a8')
+                    rook_to = BoardSquare('d8')
+                elif (move.end == BoardSquare('g8')):
+                    rook_from = BoardSquare('h1')
+                    rook_to = BoardSquare('f1')
+                rook_start = rook_from.to_board_coordinates()
+                rook_end = rook_to.to_board_coordinates()
+                piece = new_board_squares[rook_start[0]][rook_start[1]]
+                new_board_squares[rook_start[0]][rook_start[1]] = None
+                new_board_squares[rook_end[0]][rook_end[1]] = piece
+
         if move.end == en_passant:
             #Feels like a bit of a hack, but can only be one of two ranks...
             if en_passant.rank_ == 3:
@@ -409,7 +431,28 @@ class Game(object):
                     if one == two == 0:
                         continue
                     moves.update(self.generate_moves(color, start, one, two, 1))
-            #TODO Castling
+            #TODO Disallow castling through check
+            #CONSIDER replacing explicit square checks with "can rook->king"
+            if piece == 'k':
+                if self.castling.black_kingside:
+                    if (self.board.piece_at_board_square('f8') is None) and (
+                        self.board.piece_at_board_square('g8') is None):
+                        moves.add(BasicMove('e8', 'g8'))
+                if self.castling.black_queenside:
+                    if (self.board.piece_at_board_square('b8') is None) and (
+                        self.board.piece_at_board_square('c8') is None) and (
+                        self.board.piece_at_board_square('d8') is None):
+                        moves.add(BasicMove('e8', 'c8'))
+            elif piece == 'K':
+                if self.castling.white_kingside:
+                    if (self.board.piece_at_board_square('f1') is None) and (
+                        self.board.piece_at_board_square('g1') is None):
+                        moves.add(BasicMove('e1', 'g1'))
+                if self.castling.white_queenside:
+                    if (self.board.piece_at_board_square('b1') is None) and (
+                        self.board.piece_at_board_square('c1') is None) and (
+                        self.board.piece_at_board_square('d1') is None):
+                        moves.add(BasicMove('e1', 'c1'))
         elif piece == 'q' or piece == 'Q':
             for one in (-1, 0, 1):
                 for two in (-1, 0, 1):

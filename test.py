@@ -156,7 +156,7 @@ class TestChess(unittest.TestCase):
         self.assertEqual(game.en_passant, None)
         self.assertEqual(game.board.piece_at_board_square(BoardSquare('b4')), None)
 
-    def test_castling(self):
+    def test_castling_state(self):
         game = Game(self.PAWNLESS_FEN)
 
         self.assertEqual(game.castling.fen(), 'KQkq')
@@ -178,6 +178,21 @@ class TestChess(unittest.TestCase):
 
         game = game.move(BasicMove('a7', 'a8', 'Q'))
         self.assertEqual(game.fen(), 'Q3k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
+
+    def test_castling(self):
+        game = Game('r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1')
+
+        start = 'e1'
+        valid_moves = game.valid_moves(start)
+        def move_set(ends):
+            return set([BasicMove(start, end) for end in ends])
+        self.assertSetEqual(valid_moves, move_set({'c1', 'd1', 'f1', 'g1'}))
+
+        new_game = game.move(BasicMove('e1', 'c1'))
+        self.assertEqual(new_game.fen(), 'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1')
+
+        new_game = game.move(BasicMove('e1', 'g1'))
+        self.assertEqual(new_game.fen(), 'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1')
 
 if __name__ == '__main__':
     unittest.main()
