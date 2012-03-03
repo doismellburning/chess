@@ -31,7 +31,7 @@ Tracking game state::
 	'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	>>> game = game.move(BasicMove('a2', 'a4'))
 	>>> game.fen()
-	'rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1'
+	'rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1'
 
 
 https://github.com/doismellburning/chess
