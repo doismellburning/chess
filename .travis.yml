@@ -1,0 +1,6 @@
+language: python
+python:
+  - 2.7
+script:
+  - python test.py
+  - python test_docs.py
