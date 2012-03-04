@@ -5,6 +5,6 @@ setup(name='chess',
       author='Kristian Glass',
       author_email='libchess@doismellburning.co.uk',
       url='https://github.com/doismellburning/chess',
-      version='0.1',
+      version='0.9',
       py_modules=['chess'],
       )
