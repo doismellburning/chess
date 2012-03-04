@@ -6,6 +6,10 @@ Python chess library by Kristian Glass (mail@doismellburning.co.uk)
 
 import copy
 
+WHITE_PIECES = frozenset('PRNBKQ')
+BLACK_PIECES = frozenset([p.lower() for p in WHITE_PIECES])
+WHITE_PROMOTION_OPTIONS = WHITE_PIECES - set('P')
+BLACK_PROMOTION_OPTIONS = BLACK_PIECES - set('p')
 
 class InvalidSquareException(Exception):
     """
@@ -39,6 +43,12 @@ class MoveMissingPromotionException(Exception):
     promotion data
     """
     pass
+
+class InvalidPromotionDataException(Exception):
+    """
+    Raised when a move includes promotion data, but would not result in pawn
+    promotion, or is not a valid promotion
+    """
 
 def colour_of_piece(piece):
     """
@@ -277,8 +287,8 @@ class Board(object):
         white_game = Game(white_fen)
         black_fen = "%s b - - 0 1" % self.fen()
         black_game = Game(black_fen)
-        white_moves = set()
-        black_moves = set()
+        white_ends = set()
+        black_ends = set()
         white_king_square = None
         black_king_square = None
         for file_ in [chr(ord('a') + x - 1) for x in xrange(1, 9)]:
@@ -293,15 +303,15 @@ class Board(object):
                     black_king_square = square
                 colour = colour_of_piece(piece)
                 if colour == 'w':
-                    white_moves.update(
-                        white_game.valid_moves(square, check_check=False))
+                    white_ends.update(
+                        white_game.valid_ends(square, check_check=False))
                 elif colour == 'b':
-                    black_moves.update(
-                        black_game.valid_moves(square, check_check=False))
+                    black_ends.update(
+                        black_game.valid_ends(square, check_check=False))
         check = []
-        if white_king_square in [move.end for move in black_moves]:
+        if white_king_square in black_ends:
             check.append('w')
-        if black_king_square in [move.end for move in white_moves]:
+        if black_king_square in white_ends:
             check.append('b')
         return set(check)
 
@@ -393,14 +403,41 @@ class Game(object):
                                       self.castling, en_passant_str,
                                       self.halfmove, self.fullmove)
 
-    def is_move_valid(self, move):
-        """
-        Determines validity of the given move with respect to the game
-        """
-        #print [str(move) for move in self.valid_moves(move.start)]
-        return bool(move in self.valid_moves(move.start))
+    def _is_promotion_move(self, move):
+        piece = self.board.piece_at_board_square(move.start)
 
-    def valid_moves(self, start, check_check=True):
+        return (piece == 'p' and move.end.rank_ == 1) or (
+            piece == 'P' and move.end.rank_ == 8)
+
+
+    def validate_move(self, move):
+        """
+        Determines validity of the given move with respect to the game.
+
+        Returns nothing, but may raise one of a number of exceptions relating
+        to move invalidity
+        """
+        piece = self.board.piece_at_board_square(move.start)
+
+        if piece is None:
+            raise NoPieceAtSquareException()
+
+        if not move.end in self.valid_ends(move.start):
+            raise InvalidMoveException() #TODO More specific exception?
+
+        if move.promotion:
+            if not self._is_promotion_move(move):
+                raise InvalidPromotionDataException()
+            colour = colour_of_piece(piece)
+            if colour == 'w' and move.promotion not in WHITE_PROMOTION_OPTIONS:
+                raise InvalidPromotionDataException()
+            if colour == 'b' and move.promotion not in BLACK_PROMOTION_OPTIONS:
+                raise InvalidPromotionDataException()
+        else:
+            if self._is_promotion_move(move):
+                raise MoveMissingPromotionException()
+
+    def valid_ends(self, start, check_check=True):
         """
         Returns the set of moves that the piece at the given square can make
         """
@@ -417,24 +454,24 @@ class Game(object):
         if self.active != color:
             raise NotYourTurnException()
 
-        # Generate moves
-        moves = set()
+        # Generate end squares
+        ends = set()
         if piece == 'r' or piece == 'R':
-            moves.update(self.generate_moves(color, start, 0, +1, 8))
-            moves.update(self.generate_moves(color, start, 0, -1, 8))
-            moves.update(self.generate_moves(color, start, +1, 0, 8))
-            moves.update(self.generate_moves(color, start, -1, 0, 8))
+            ends.update(self.generate_ends(color, start, 0, +1, 8))
+            ends.update(self.generate_ends(color, start, 0, -1, 8))
+            ends.update(self.generate_ends(color, start, +1, 0, 8))
+            ends.update(self.generate_ends(color, start, -1, 0, 8))
         elif piece == 'n' or piece == 'N':
             for one in (-1, 1):
                 for two in (-2, 2):
-                    moves.update(self.generate_moves(color, start, one,
+                    ends.update(self.generate_ends(color, start, one,
                         two, 1))
-                    moves.update(self.generate_moves(color, start, two,
+                    ends.update(self.generate_ends(color, start, two,
                         one, 1))
         elif piece == 'b' or piece == 'B':
             for one in (-1, 1):
                 for two in (-1, 1):
-                    moves.update(self.generate_moves(color, start, one,
+                    ends.update(self.generate_ends(color, start, one,
                         two, 8))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
@@ -453,66 +490,66 @@ class Game(object):
             else:
                 limit = 1
 
-            moves.update(self.generate_moves(color, start, rank_delta, 0, limit,
+            ends.update(self.generate_ends(color, start, rank_delta, 0, limit,
                 can_take=False))
 
             for one in (-1, 1):
-                moves.update(self.generate_moves(color, start, rank_delta, one,
+                ends.update(self.generate_ends(color, start, rank_delta, one,
                     1, must_take=True, can_en_passant=True))
         elif piece == 'k' or piece == 'K':
             for one in (-1, 0, 1):
                 for two in (-1, 0, 1):
                     if one == two == 0:
                         continue
-                    moves.update(self.generate_moves(color, start, one, two, 1))
+                    ends.update(self.generate_ends(color, start, one, two, 1))
             #TODO Disallow castling through check
             #CONSIDER replacing explicit square checks with "can rook->king"
             if piece == 'k':
                 if self.castling.black_kingside:
                     if (self.board.piece_at_board_square('f8') is None) and (
                         self.board.piece_at_board_square('g8') is None):
-                        moves.add(BasicMove('e8', 'g8'))
+                        ends.add(BoardSquare('g8'))
                 if self.castling.black_queenside:
                     if (self.board.piece_at_board_square('b8') is None) and (
                         self.board.piece_at_board_square('c8') is None) and (
                         self.board.piece_at_board_square('d8') is None):
-                        moves.add(BasicMove('e8', 'c8'))
+                        ends.add(BoardSquare('c8'))
             elif piece == 'K':
                 if self.castling.white_kingside:
                     if (self.board.piece_at_board_square('f1') is None) and (
                         self.board.piece_at_board_square('g1') is None):
-                        moves.add(BasicMove('e1', 'g1'))
+                        ends.add(BoardSquare('g1'))
                 if self.castling.white_queenside:
                     if (self.board.piece_at_board_square('b1') is None) and (
                         self.board.piece_at_board_square('c1') is None) and (
                         self.board.piece_at_board_square('d1') is None):
-                        moves.add(BasicMove('e1', 'c1'))
+                        ends.add(BoardSquare('c1'))
         elif piece == 'q' or piece == 'Q':
             for one in (-1, 0, 1):
                 for two in (-1, 0, 1):
                     if one == two == 0:
                         continue
-                    moves.update(self.generate_moves(color, start, one, two, 8))
+                    ends.update(self.generate_ends(color, start, one, two, 8))
         else:
             raise NotImplementedError(
                 'No idea how to generate moves for %s' % piece)
 
         if check_check:
             # Generate potential boards
-            move_boards = zip(moves,
-                [self.board.board_from_move(move, self.en_passant) for move in
-                 moves])
+            move_boards = zip(ends, [
+            self.board.board_from_move(BasicMove(start, end), self.en_passant)
+            for end in ends])
 
             # Determine check, prune
-            valid_moves = set([move_board[0] for move_board in move_boards if
+            valid_ends = set([move_board[0] for move_board in move_boards if
                                self.active not in move_board[1].check_status()])
         else:
-            valid_moves = moves
+            valid_ends = ends
 
-        return valid_moves
+        return valid_ends
 
-    def generate_moves(self, color, start, rank_delta, file_delta, limit,
-                       can_take=True, must_take=False, can_en_passant=False):
+    def generate_ends(self, color, start, rank_delta, file_delta, limit,
+                      can_take=True, must_take=False, can_en_passant=False):
         """
         TODO Document this in a way that doesn't feel silly
         """
@@ -537,21 +574,12 @@ class Game(object):
                     ends.append(position)
                 break
 
-        moves = set([BasicMove(start, end) for end in ends])
-        return moves
+        return ends
 
     def move(self, move):
-        if not self.is_move_valid(move):
-            raise InvalidMoveException()
+        self.validate_move(move)
 
         piece = self.board.piece_at_board_square(move.start)
-
-        #If we're trying to move pawn to end rank, make sure we have promotion
-        #data
-        if (piece == 'p' and move.end.rank_ == 1) or (
-            piece == 'P' and move.end.rank_ == 8):
-            if move.promotion is None:
-                raise MoveMissingPromotionException()
 
         new_game = Game(self.fen())
         new_game.board = new_game.board.board_from_move(move, self.en_passant)

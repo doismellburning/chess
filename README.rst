@@ -18,10 +18,10 @@ Determining valid moves::
 
 	>>> from chess import Game
 	>>> game = Game()
-	>>> game.valid_moves('a1')
+	>>> game.valid_ends('a1')
 	set([])
-	>>> [str(move) for move in game.valid_moves('a2')]
-	['(a2 -> a3)', '(a2 -> a4)']
+	>>> [str(square) for square in game.valid_ends('a2')]
+	['a3', 'a4']
 
 Tracking game state::
 

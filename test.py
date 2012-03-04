@@ -1,5 +1,5 @@
 import unittest
-from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException, MoveMissingPromotionException
+from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException, MoveMissingPromotionException, InvalidPromotionDataException
 
 class TestChess(unittest.TestCase):
 
@@ -8,6 +8,9 @@ class TestChess(unittest.TestCase):
     SIMPLE_ROOK_FEN = "k7/8/8/8/8/8/8/3R4 w - - 0 1"
     SIMPLE_BISHOP_FEN = "k7/8/8/8/8/8/8/3B4 w - - 0 1"
     CHECK_FEN = 'rnbqkbnr/8/8/1B6/8/8/8/RNBQK1NR b KQkq - 1 1'
+
+    def _squarify(self, square_strs):
+        return set([BoardSquare(square_str) for square_str in square_strs])
 
     def test_starting(self):
         game = Game()
@@ -50,33 +53,30 @@ class TestChess(unittest.TestCase):
         self.assertEqual(f('a1'), "R")
         self.assertEqual(f('f7'), "p")
 
-    def test_valid_moves(self):
+    def test_valid_ends(self):
         game = Game()
 
-        def f(game, start, ends):
-            moves = set([BasicMove(start, end) for end in ends])
-            self.assertSetEqual(game.valid_moves(start), moves)
-
-        f(game, 'a1', set())
-        f(game, 'a2', {'a3', 'a4'})
-        f(game, 'b2', {'b3', 'b4'})
-        f(game, 'b1', {'a3', 'c3'})
-        f(game, 'c1', set())
-        f(Game(self.SIMPLE_BISHOP_FEN), 'd1', {BoardSquare('c2'),
-                                               BoardSquare('b3'),
-                                               BoardSquare('a4'),
-                                               BoardSquare('e2'),
-                                               BoardSquare('f3'),
-                                               BoardSquare('g4'),
-                                               BoardSquare('h5')})
+        self.assertSetEqual(game.valid_ends('a1'), set())
+        self.assertSetEqual(game.valid_ends('a2'), self._squarify({'a3', 'a4'}))
+        self.assertSetEqual(game.valid_ends('b2'), self._squarify({'b3', 'b4'}))
+        self.assertSetEqual(game.valid_ends('b1'), self._squarify({'a3', 'c3'}))
+        self.assertSetEqual(game.valid_ends('c1'), set())
+        self.assertSetEqual(Game(self.SIMPLE_BISHOP_FEN).valid_ends('d1'),
+                {BoardSquare('c2'),
+                 BoardSquare('b3'),
+                 BoardSquare('a4'),
+                 BoardSquare('e2'),
+                 BoardSquare('f3'),
+                 BoardSquare('g4'),
+                 BoardSquare('h5')})
 
     def test_moving_no_piece(self):
         game = Game()
 
         try:
             empty_square = 'c5'
-            game.valid_moves(empty_square)
-            self.fail('valid_moves expected to have raised NoPieceAtSquareException for moves from %s' % start)
+            game.valid_ends(empty_square)
+            self.fail('valid_ends expected to have raised NoPieceAtSquareException for moves from %s' % start)
         except NoPieceAtSquareException:
             pass
 
@@ -99,22 +99,15 @@ class TestChess(unittest.TestCase):
         fen = "rnbqkbnr/pppppppp/8/8/8/Pr6/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
         game = Game(fen)
-        moves = game.valid_moves('b2')
-
-        self.assertEqual(moves, set())
+        self.assertEqual(game.valid_ends('b2'), set())
 
     def test_pawn_taking(self):
         fen = "rnbqkbnr/pppppppp/8/8/8/Pr6/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
         game = Game(fen)
 
-        def f(start, ends):
-            moves = game.valid_moves(start)
-            self.assertEqual(moves,
-                set([BasicMove(start, end) for end in ends]))
-
-        f('a2', ['b3'])
-        f('c2', ['b3', 'c3', 'c4'])
+        self.assertSetEqual(game.valid_ends('a2'), self._squarify(['b3']))
+        self.assertSetEqual(game.valid_ends('c2'), self._squarify(['b3', 'c3', 'c4']))
 
     def test_move_counters(self):
         game = Game(self.STARTING_FEN)
@@ -173,21 +166,29 @@ class TestChess(unittest.TestCase):
 
         try:
             game = game.move(BasicMove('a7', 'a8'))
-            self.assertFail('Should not accept promotion move without promotion data')
+            self.fail('Should not accept promotion move without promotion data')
         except MoveMissingPromotionException:
+            pass
+
+        try:
+            game.move(BasicMove('a7', 'a8', 'LLAMA'))
+            self.fail('Should not accept non-promotion move with promotion data')
+        except InvalidPromotionDataException:
             pass
 
         game = game.move(BasicMove('a7', 'a8', 'Q'))
         self.assertEqual(game.fen(), 'Q3k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1')
 
+        try:
+            game.move(BasicMove('e8', 'e7', 'Q'))
+            self.fail('Should not accept non-promotion move with promotion data')
+        except InvalidPromotionDataException:
+            pass
+
     def test_castling(self):
         game = Game('r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1')
 
-        start = 'e1'
-        valid_moves = game.valid_moves(start)
-        def move_set(ends):
-            return set([BasicMove(start, end) for end in ends])
-        self.assertSetEqual(valid_moves, move_set({'c1', 'd1', 'f1', 'g1'}))
+        self.assertSetEqual(game.valid_ends('e1'), self._squarify({'c1', 'd1', 'f1', 'g1'}))
 
         new_game = game.move(BasicMove('e1', 'c1'))
         self.assertEqual(new_game.fen(), 'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1')
@@ -199,28 +200,25 @@ class TestChess(unittest.TestCase):
         game = Game('rrrrkrrr/8/8/8/8/8/8/R3K2R w KQ - 0 1')
 
         self.assertSetEqual(game.board.check_status(), set())
-        self.assertSetEqual(game.valid_moves('e1'), set([BasicMove('e1', 'e2')]))
+        self.assertSetEqual(game.valid_ends('e1'), self._squarify(['e2']))
 
     def test_not_moving_into_check(self):
         game = Game('1k6/8/8/8/8/8/8/R1RK4 b - - 1 1')
 
         self.assertSetEqual(game.board.check_status(), set())
 
-        self.assertSetEqual(game.valid_moves('b8'), set([BasicMove('b8', 'b7')]))
+        self.assertSetEqual(game.valid_ends('b8'), self._squarify(['b7']))
 
     def test_must_leave_check(self):
-        game = Game('r6r/k7/8/8/8/8/8/R3K2R b KQkq - 1 1')
+        game = Game('r6r/k7/8/8/8/8/8/R3K2R b KQ - 1 1')
 
         self.assertSetEqual(game.board.check_status(), set(['b']))
 
         #Can't move out of check with either rook
-        self.assertSetEqual(game.valid_moves('a8'), set())
-        self.assertSetEqual(game.valid_moves('a8'), set())
+        self.assertSetEqual(game.valid_ends('a8'), set())
+        self.assertSetEqual(game.valid_ends('a8'), set())
         #Only 3 of 5 king moves possible
-        start = 'a7'
-        def move_set(ends):
-            return set([BasicMove(start, end) for end in ends])
-        self.assertSetEqual(game.valid_moves(start), move_set({'b8', 'b7', 'b6'}))
+        self.assertSetEqual(game.valid_ends('a7'), self._squarify({'b8', 'b7', 'b6'}))
 
 
     def test_basic_check(self):
@@ -229,17 +227,16 @@ class TestChess(unittest.TestCase):
 
         self.assertSetEqual(game.board.check_status(), set(['b']))
         #Can't use Rook to get out of check
-        self.assertSetEqual(game.valid_moves('a8'), set())
+        self.assertSetEqual(game.valid_ends('a8'), set())
         #Only one place to move the Queen - in the way
-        self.assertSetEqual(game.valid_moves('d8'), set([BasicMove('d8', 'd7')]))
+        self.assertSetEqual(game.valid_ends('d8'), self._squarify(['d7']))
 
         #Make that move to be out of check
         game = game.move(BasicMove('d8', 'd7'))
         #Dummy move by white to get the turn back to black
         game = game.move(BasicMove('a1', 'a2'))
         #Now we can only move that Queen to things still in the way...
-        self.assertSetEqual(game.valid_moves('d7'),
-            set([BasicMove('d7', 'b5'), BasicMove('d7', 'c6')]))
+        self.assertSetEqual(game.valid_ends('d7'), self._squarify(['b5', 'c6']))
 
 
 if __name__ == '__main__':
