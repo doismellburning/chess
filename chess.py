@@ -460,7 +460,8 @@ class Game(object):
                         continue
                     moves.update(self.generate_moves(color, start, one, two, 8))
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(
+                'No idea how to generate moves for %s' % piece)
 
         # Generate potential boards
         move_boards = zip(moves,
