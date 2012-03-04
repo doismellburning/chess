@@ -7,6 +7,7 @@ class TestChess(unittest.TestCase):
     PAWNLESS_FEN = "rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1"
     SIMPLE_ROOK_FEN = "k7/8/8/8/8/8/8/3R4 w - - 0 1"
     SIMPLE_BISHOP_FEN = "k7/8/8/8/8/8/8/3B4 w - - 0 1"
+    CHECK_FEN = 'rnbqkbnr/8/8/1B6/8/8/8/RNBQK1NR b KQkq - 1 1'
 
     def test_starting(self):
         game = Game()
@@ -193,6 +194,53 @@ class TestChess(unittest.TestCase):
 
         new_game = game.move(BasicMove('e1', 'g1'))
         self.assertEqual(new_game.fen(), 'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1')
+
+    def test_castling_through_check(self):
+        game = Game('rrrrkrrr/8/8/8/8/8/8/R3K2R w KQ - 0 1')
+
+        self.assertSetEqual(game.board.check_status(), set())
+        self.assertSetEqual(game.valid_moves('e1'), set([BasicMove('e1', 'e2')]))
+
+    def test_not_moving_into_check(self):
+        game = Game('1k6/8/8/8/8/8/8/R1RK4 b - - 1 1')
+
+        self.assertSetEqual(game.board.check_status(), set())
+
+        self.assertSetEqual(game.valid_moves('b8'), set([BasicMove('b8', 'b7')]))
+
+    def test_must_leave_check(self):
+        game = Game('r6r/k7/8/8/8/8/8/R3K2R b KQkq - 1 1')
+
+        self.assertSetEqual(game.board.check_status(), set(['b']))
+
+        #Can't move out of check with either rook
+        self.assertSetEqual(game.valid_moves('a8'), set())
+        self.assertSetEqual(game.valid_moves('a8'), set())
+        #Only 3 of 5 king moves possible
+        start = 'a7'
+        def move_set(ends):
+            return set([BasicMove(start, end) for end in ends])
+        self.assertSetEqual(game.valid_moves(start), move_set({'b8', 'b7', 'b6'}))
+
+
+    def test_basic_check(self):
+        #Game in check
+        game = Game('rnbqkbnr/8/8/1B6/8/8/8/RNBQK1NR b KQkq - 1 1')
+
+        self.assertSetEqual(game.board.check_status(), set(['b']))
+        #Can't use Rook to get out of check
+        self.assertSetEqual(game.valid_moves('a8'), set())
+        #Only one place to move the Queen - in the way
+        self.assertSetEqual(game.valid_moves('d8'), set([BasicMove('d8', 'd7')]))
+
+        #Make that move to be out of check
+        game = game.move(BasicMove('d8', 'd7'))
+        #Dummy move by white to get the turn back to black
+        game = game.move(BasicMove('a1', 'a2'))
+        #Now we can only move that Queen to things still in the way...
+        self.assertSetEqual(game.valid_moves('d7'),
+            set([BasicMove('d7', 'b5'), BasicMove('d7', 'c6')]))
+
 
 if __name__ == '__main__':
     unittest.main()

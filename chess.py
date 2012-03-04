@@ -268,10 +268,41 @@ class Board(object):
 
     def check_status(self):
         """
-        Returns the check status (a colour or None) of the board
+        Returns a set containing any colours in check in the current game state
+
+        TODO: Optimisation for later - have an is_colour_in_check boolean, then
+        we can stop generating moves for opposite colour once this becomes true
         """
-        return None
-        #TODO raise NotImplementedError()
+        white_fen = "%s w - - 0 1" % self.fen()
+        white_game = Game(white_fen)
+        black_fen = "%s b - - 0 1" % self.fen()
+        black_game = Game(black_fen)
+        white_moves = set()
+        black_moves = set()
+        white_king_square = None
+        black_king_square = None
+        for file_ in [chr(ord('a') + x - 1) for x in xrange(1, 9)]:
+            for rank_ in xrange(1, 9):
+                square = BoardSquare(file_, rank_)
+                piece = self.piece_at_board_square(square)
+                if piece is None:
+                    continue
+                if piece == 'K':
+                    white_king_square = square
+                if piece == 'k':
+                    black_king_square = square
+                colour = colour_of_piece(piece)
+                if colour == 'w':
+                    white_moves.update(white_game.valid_moves(square, check_check=False))
+                    #
+                elif colour == 'b':
+                    black_moves.update(black_game.valid_moves(square, check_check=False))
+        check = []
+        if white_king_square in [move.end for move in black_moves]:
+            check.append('w')
+        if black_king_square in [move.end for move in white_moves]:
+            check.append('b')
+        return set(check)
 
     def board_from_move(self, move, en_passant):
         """
@@ -331,7 +362,7 @@ class Game(object):
 	
     def __init__(self, fen=None):
         self.board = Board()
-        self.active = "w" #TODO Better
+        self.active = "w"
         self.castling = CastlingState()
         self.en_passant = None
         self.halfmove = 0
@@ -368,7 +399,7 @@ class Game(object):
         #print [str(move) for move in self.valid_moves(move.start)]
         return bool(move in self.valid_moves(move.start))
 
-    def valid_moves(self, start):
+    def valid_moves(self, start, check_check=True):
         """
         Returns the set of moves that the piece at the given square can make
         """
@@ -388,7 +419,6 @@ class Game(object):
         # Generate moves
         moves = set()
         if piece == 'r' or piece == 'R':
-            #TODO Figure out what loop I want for this?
             moves.update(self.generate_moves(color, start, 0, +1, 8))
             moves.update(self.generate_moves(color, start, 0, -1, 8))
             moves.update(self.generate_moves(color, start, +1, 0, 8))
@@ -466,14 +496,17 @@ class Game(object):
             raise NotImplementedError(
                 'No idea how to generate moves for %s' % piece)
 
-        # Generate potential boards
-        move_boards = zip(moves,
-            [self.board.board_from_move(move, self.en_passant) for move in
-             moves])
+        if check_check:
+            # Generate potential boards
+            move_boards = zip(moves,
+                [self.board.board_from_move(move, self.en_passant) for move in
+                 moves])
 
-        # Determine check, prune
-        valid_moves = set([move_board[0] for move_board in move_boards if
-                           move_board[1].check_status() != self.active])
+            # Determine check, prune
+            valid_moves = set([move_board[0] for move_board in move_boards if
+                               self.active not in move_board[1].check_status()])
+        else:
+            valid_moves = moves
 
         return valid_moves
 
