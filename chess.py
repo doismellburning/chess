@@ -236,6 +236,9 @@ class Board(object):
             self.squares[7] = list('RNBQKBNR')
 
     def __str__(self):
+        return self.fen()
+
+    def fen(self):
         rows = list()
         for row in self.squares:
             row_str = ''
@@ -354,9 +357,9 @@ class Game(object):
         http://en.wikipedia.org/wiki/Forsyth-Edwards_Notation
         """
         en_passant_str = self.en_passant or "-"
-        return '%s %s %s %s %d %d' % (self.board, self.active, self.castling,
-                                      en_passant_str, self.halfmove,
-                                      self.fullmove)
+        return '%s %s %s %s %d %d' % (self.board.fen(), self.active,
+                                      self.castling, en_passant_str,
+                                      self.halfmove, self.fullmove)
 
     def is_move_valid(self, move):
         """
