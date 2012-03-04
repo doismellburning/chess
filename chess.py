@@ -293,10 +293,11 @@ class Board(object):
                     black_king_square = square
                 colour = colour_of_piece(piece)
                 if colour == 'w':
-                    white_moves.update(white_game.valid_moves(square, check_check=False))
-                    #
+                    white_moves.update(
+                        white_game.valid_moves(square, check_check=False))
                 elif colour == 'b':
-                    black_moves.update(black_game.valid_moves(square, check_check=False))
+                    black_moves.update(
+                        black_game.valid_moves(square, check_check=False))
         check = []
         if white_king_square in [move.end for move in black_moves]:
             check.append('w')
