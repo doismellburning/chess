@@ -50,14 +50,14 @@ class InvalidPromotionDataException(Exception):
     promotion, or is not a valid promotion
     """
 
-def colour_of_piece(piece):
+def _colour_of_piece(piece):
     """
     Returns "w" or "b" depending on colour of piece string
 
-    >>> colour_of_piece('K')
+    >>> _colour_of_piece('K')
     'w'
 
-    >>> colour_of_piece('p')
+    >>> _colour_of_piece('p')
     'b'
 
     TODO Use piece / colour objects?
@@ -96,10 +96,10 @@ class BoardSquare(object):
 
     def to_board_coordinates(self):
         """
-        Turns square into array coordinates suitable for Board object internal
+        Turns square into array coordinates suitable for _Board object internal
         array
 
-        TODO Move to Board?
+        TODO Move to _Board?
         """
         fst = 8 - self.rank_
         snd = ord(self.file_) - ord('a')
@@ -137,7 +137,7 @@ class BoardSquare(object):
         return hash(self.rank_) ^ hash(self.file_)
 
 
-class CastlingState(object):
+class _CastlingState(object):
     """
     See FEN - tracks what castling is still possible
     """
@@ -213,7 +213,7 @@ class BasicMove(object):
         #TODO This means reverse move has same hash - consider fixing?
         return hash(self.start) ^ hash(self.end)
 
-class Board(object):
+class _Board(object):
     """
     Represents a chess board...
     """
@@ -301,7 +301,7 @@ class Board(object):
                     white_king_square = square
                 if piece == 'k':
                     black_king_square = square
-                colour = colour_of_piece(piece)
+                colour = _colour_of_piece(piece)
                 if colour == 'w':
                     white_ends.update(
                         white_game.valid_ends(square, check_check=False))
@@ -362,7 +362,7 @@ class Board(object):
                 raise Exception() #TODO
             new_board_squares[taken_pawn_coords[0]][taken_pawn_coords[1]] = None
 
-        return Board(squares=new_board_squares)
+        return _Board(squares=new_board_squares)
 
 
 class Game(object):
@@ -372,9 +372,9 @@ class Game(object):
     """
 	
     def __init__(self, fen=None):
-        self.board = Board()
+        self.board = _Board()
         self.active = "w"
-        self.castling = CastlingState()
+        self.castling = _CastlingState()
         self.en_passant = None
         self.halfmove = 0
         self.fullmove = 1
@@ -382,9 +382,9 @@ class Game(object):
         if fen:
             (board_str, active, castling, en_passant, halfmove, fullmove) = \
                 fen.split(' ')
-            self.board = Board(fen=board_str)
+            self.board = _Board(fen=board_str)
             self.active = active
-            self.castling = CastlingState(castling)
+            self.castling = _CastlingState(castling)
             if en_passant == "-":
                 self.en_passant = None
             else:
@@ -428,7 +428,7 @@ class Game(object):
         if move.promotion:
             if not self._is_promotion_move(move):
                 raise InvalidPromotionDataException()
-            colour = colour_of_piece(piece)
+            colour = _colour_of_piece(piece)
             if colour == 'w' and move.promotion not in WHITE_PROMOTION_OPTIONS:
                 raise InvalidPromotionDataException()
             if colour == 'b' and move.promotion not in BLACK_PROMOTION_OPTIONS:
@@ -449,7 +449,7 @@ class Game(object):
         if piece is None:
             raise NoPieceAtSquareException('No piece at %s' % start)
 
-        color = colour_of_piece(piece)
+        color = _colour_of_piece(piece)
 
         if self.active != color:
             raise NotYourTurnException()
@@ -457,21 +457,21 @@ class Game(object):
         # Generate end squares
         ends = set()
         if piece == 'r' or piece == 'R':
-            ends.update(self.generate_ends(color, start, 0, +1, 8))
-            ends.update(self.generate_ends(color, start, 0, -1, 8))
-            ends.update(self.generate_ends(color, start, +1, 0, 8))
-            ends.update(self.generate_ends(color, start, -1, 0, 8))
+            ends.update(self._generate_ends(color, start, 0, +1, 8))
+            ends.update(self._generate_ends(color, start, 0, -1, 8))
+            ends.update(self._generate_ends(color, start, +1, 0, 8))
+            ends.update(self._generate_ends(color, start, -1, 0, 8))
         elif piece == 'n' or piece == 'N':
             for one in (-1, 1):
                 for two in (-2, 2):
-                    ends.update(self.generate_ends(color, start, one,
+                    ends.update(self._generate_ends(color, start, one,
                         two, 1))
-                    ends.update(self.generate_ends(color, start, two,
+                    ends.update(self._generate_ends(color, start, two,
                         one, 1))
         elif piece == 'b' or piece == 'B':
             for one in (-1, 1):
                 for two in (-1, 1):
-                    ends.update(self.generate_ends(color, start, one,
+                    ends.update(self._generate_ends(color, start, one,
                         two, 8))
         elif piece == 'p' or piece == 'P':
             starting_rank = False
@@ -490,18 +490,18 @@ class Game(object):
             else:
                 limit = 1
 
-            ends.update(self.generate_ends(color, start, rank_delta, 0, limit,
+            ends.update(self._generate_ends(color, start, rank_delta, 0, limit,
                 can_take=False))
 
             for one in (-1, 1):
-                ends.update(self.generate_ends(color, start, rank_delta, one,
+                ends.update(self._generate_ends(color, start, rank_delta, one,
                     1, must_take=True, can_en_passant=True))
         elif piece == 'k' or piece == 'K':
             for one in (-1, 0, 1):
                 for two in (-1, 0, 1):
                     if one == two == 0:
                         continue
-                    ends.update(self.generate_ends(color, start, one, two, 1))
+                    ends.update(self._generate_ends(color, start, one, two, 1))
             #TODO Disallow castling through check
             #CONSIDER replacing explicit square checks with "can rook->king"
             if piece == 'k':
@@ -529,7 +529,7 @@ class Game(object):
                 for two in (-1, 0, 1):
                     if one == two == 0:
                         continue
-                    ends.update(self.generate_ends(color, start, one, two, 8))
+                    ends.update(self._generate_ends(color, start, one, two, 8))
         else:
             raise NotImplementedError(
                 'No idea how to generate moves for %s' % piece)
@@ -548,7 +548,7 @@ class Game(object):
 
         return valid_ends
 
-    def generate_ends(self, color, start, rank_delta, file_delta, limit,
+    def _generate_ends(self, color, start, rank_delta, file_delta, limit,
                       can_take=True, must_take=False, can_en_passant=False):
         """
         TODO Document this in a way that doesn't feel silly
@@ -570,7 +570,7 @@ class Game(object):
                                        position == self.en_passant):
                     ends.append(position)
             else:
-                if can_take and colour_of_piece(end_piece) != color:
+                if can_take and _colour_of_piece(end_piece) != color:
                     ends.append(position)
                 break
 
