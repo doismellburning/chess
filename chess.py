@@ -161,6 +161,12 @@ class _CastlingState(object):
         return self.fen()
 
     def fen(self):
+        """
+        Returns Forsyth-Edwards Notation representation of castling state
+
+        >>> _CastlingState().fen()
+        'KQkq'
+        """
         retval = ""
 
         if self.white_kingside:
@@ -249,6 +255,12 @@ class _Board(object):
         return self.fen()
 
     def fen(self):
+        """
+        Returns Forsyth-Edwards Notation representation of game board state
+
+        >>> _Board().fen()
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+        """
         rows = list()
         for row in self.squares:
             row_str = ''
@@ -404,6 +416,9 @@ class Game(object):
                                       self.halfmove, self.fullmove)
 
     def _is_promotion_move(self, move):
+        """
+        Determines if a move should or shouldn't have promotion data
+        """
         piece = self.board.piece_at_board_square(move.start)
 
         return (piece == 'p' and move.end.rank_ == 1) or (
@@ -577,6 +592,20 @@ class Game(object):
         return ends
 
     def move(self, move):
+        """
+        Returns a new Game instance with move applied
+
+        >>> g1 = Game()
+        >>> g1.fen()
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        >>> g2 = g1.move(BasicMove('a2', 'a4'))
+        >>> g2.fen()
+        'rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1'
+        >>> g1.fen()
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        >>> g1.fen() == g2.fen()
+        False
+        """
         self.validate_move(move)
 
         piece = self.board.piece_at_board_square(move.start)
@@ -623,16 +652,10 @@ class Game(object):
 
         return new_game
 
-    def display_move(self, move):
-        if not self.is_move_valid(move):
-            raise InvalidMoveException()
-
-        raise NotImplementedError()
-
     def __str__(self):
         return self.fen()
 
-FEN_TO_UNICODE_MAP = {
+_FEN_TO_UNICODE_MAP = {
     'K': u'♔',
     'Q': u'♕',
     'R': u'♖',
@@ -645,8 +668,13 @@ FEN_TO_UNICODE_MAP = {
     'b': u'♝',
     'n': u'♞',
     'p': u'♟',
-    None: None,
 }
 
 def fen_to_unicode(piece):
-    return FEN_TO_UNICODE_MAP[piece]
+    """
+    Takes the Forsyth-Edwards representation of a piece and returns the
+    Unicode symbol, or None if piece is None
+    """
+    if piece is None:
+        return None
+    return _FEN_TO_UNICODE_MAP[piece]
