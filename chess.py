@@ -652,6 +652,60 @@ class Game(object):
 
         return new_game
 
+    def _can_move(self):
+        """Returns True if the current side cannot move"""
+        for file_ in [chr(ord('a') + x - 1) for x in xrange(1, 9)]:
+            for rank_ in xrange(1, 9):
+                square = BoardSquare(file_, rank_)
+                piece = self.board.piece_at_board_square(square)
+                if piece is None:
+                    continue
+                colour = _colour_of_piece(piece)
+                if colour != self.active:
+                    continue
+                if self.valid_ends(square):
+                    return True
+        return False
+
+    def is_checkmate(self):
+        """
+        Returns True if we are in checkmate, i.e. in check and unable to move
+
+        >>> g = Game()
+        >>> g.fen()
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        >>> g.is_checkmate()
+        False
+
+        >>> g = Game('rr2k3/8/8/8/8/8/8/K7 w - - 0 1')
+        >>> g.is_checkmate()
+        True
+        """
+        if self.active not in self.board.check_status():
+            return False
+
+        return not self._can_move()
+
+    def is_stalemate(self):
+        """
+        Returns True if we are in stalemate, i.e. not in check but unable to
+        move
+
+        >>> g = Game()
+        >>> g.fen()
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        >>> g.is_stalemate()
+        False
+
+        >>> g = Game('r1r5/1K6/7r/8/8/8/8/8 w - - 0 1')
+        >>> g.is_stalemate()
+        True
+        """
+        if self.active in self.board.check_status():
+            return False
+
+        return not self._can_move()
+
     def __str__(self):
         return self.fen()
 

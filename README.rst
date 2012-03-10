@@ -33,5 +33,18 @@ Tracking game state::
 	>>> game.fen()
 	'rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1'
 
+Checkmate::
+
+	>>> from chess import Game, BasicMove
+	>>> game = Game()
+	>>> game.is_checkmate()
+	False
+	>>> # Fool's mate...
+	>>> game = game.move(BasicMove('f2', 'f3'))
+	>>> game = game.move(BasicMove('e7', 'e5'))
+	>>> game = game.move(BasicMove('g2', 'g4'))
+	>>> game = game.move(BasicMove('d8', 'h4'))
+	>>> game.is_checkmate()
+	True
 
 https://github.com/doismellburning/chess
