@@ -5,6 +5,7 @@ Python chess library by Kristian Glass (mail@doismellburning.co.uk)
 """
 
 import copy
+import pieces
 
 WHITE_PIECES = frozenset('PRNBKQ')
 BLACK_PIECES = frozenset([p.lower() for p in WHITE_PIECES])
@@ -295,12 +296,8 @@ class _Board(object):
         TODO: Optimisation for later - have an is_colour_in_check boolean, then
         we can stop generating moves for opposite colour once this becomes true
         """
-        white_fen = "%s w - - 0 1" % self.fen()
-        white_game = Game(white_fen)
-        black_fen = "%s b - - 0 1" % self.fen()
-        black_game = Game(black_fen)
-        white_ends = set()
-        black_ends = set()
+        white_threats = set()
+        black_threats = set()
         white_king_square = None
         black_king_square = None
         for file_ in [chr(ord('a') + x - 1) for x in xrange(1, 9)]:
@@ -314,18 +311,38 @@ class _Board(object):
                 if piece == 'k':
                     black_king_square = square
                 colour = _colour_of_piece(piece)
+                piece_object = pieces.PIECE_MAP[piece]()
+                threat_squares = piece_object.threat_squares(self, square)
                 if colour == 'w':
-                    white_ends.update(
-                        white_game.valid_ends(square, check_check=False))
+                    white_threats.update(threat_squares)
                 elif colour == 'b':
-                    black_ends.update(
-                        black_game.valid_ends(square, check_check=False))
+                    black_threats.update(threat_squares)
         check = []
-        if white_king_square in black_ends:
+        if white_king_square in black_threats:
             check.append('w')
-        if black_king_square in white_ends:
+        if black_king_square in white_threats:
             check.append('b')
         return set(check)
+
+    def _threat_squares(self, color=None):
+        """
+        Returns a set of all squares threatened by the supplied color, or by all
+        colors if None is supplied.
+
+        Overly similar to check_status() which should probably be fixed...
+        """
+        threat_squares = set()
+        for file_ in [chr(ord('a') + x - 1) for x in xrange(1, 9)]:
+            for rank_ in xrange(1, 9):
+                square = BoardSquare(file_, rank_)
+                piece = self.piece_at_board_square(square)
+                if piece is None:
+                    continue
+                if color != _colour_of_piece(piece):
+                    continue
+                piece_object = pieces.PIECE_MAP[piece]()
+                threat_squares.update(piece_object.threat_squares(self, square))
+        return threat_squares
 
     def board_from_move(self, move, en_passant):
         """
@@ -471,83 +488,47 @@ class Game(object):
 
         # Generate end squares
         ends = set()
-        if piece == 'r' or piece == 'R':
-            ends.update(self._generate_ends(color, start, 0, +1, 8))
-            ends.update(self._generate_ends(color, start, 0, -1, 8))
-            ends.update(self._generate_ends(color, start, +1, 0, 8))
-            ends.update(self._generate_ends(color, start, -1, 0, 8))
-        elif piece == 'n' or piece == 'N':
-            for one in (-1, 1):
-                for two in (-2, 2):
-                    ends.update(self._generate_ends(color, start, one,
-                        two, 1))
-                    ends.update(self._generate_ends(color, start, two,
-                        one, 1))
-        elif piece == 'b' or piece == 'B':
-            for one in (-1, 1):
-                for two in (-1, 1):
-                    ends.update(self._generate_ends(color, start, one,
-                        two, 8))
-        elif piece == 'p' or piece == 'P':
-            starting_rank = False
-            rank_delta = 0
-            if piece == 'p':
-                rank_delta = -1
-                if start.rank_ == 7:
-                    starting_rank = True
-            if piece == 'P':
-                rank_delta = 1
-                if start.rank_ == 2:
-                    starting_rank = True
+        piece_object = pieces.PIECE_MAP[piece]()
+        move_squares = piece_object.move_squares(self.board, start)
+        threat_squares = piece_object.threat_squares(self.board, start)
 
-            if starting_rank:
-                limit = 2
-            else:
-                limit = 1
+        ends.update(move_squares)
 
-            ends.update(self._generate_ends(color, start, rank_delta, 0, limit,
-                can_take=False))
+        for threat_square in threat_squares - move_squares:
+            if self.board.piece_at_board_square(threat_square) is not None:
+                ends.add(threat_square)
+            if self.en_passant == threat_square:
+                if piece == 'p' or piece == 'P':
+                    ends.add(threat_square)
 
-            for one in (-1, 1):
-                ends.update(self._generate_ends(color, start, rank_delta, one,
-                    1, must_take=True, can_en_passant=True))
-        elif piece == 'k' or piece == 'K':
-            for one in (-1, 0, 1):
-                for two in (-1, 0, 1):
-                    if one == two == 0:
-                        continue
-                    ends.update(self._generate_ends(color, start, one, two, 1))
-            #TODO Disallow castling through check
-            #CONSIDER replacing explicit square checks with "can rook->king"
+        other_color = 'b' if color == 'w' else 'w' #Ugh
+        opposing_threats = self.board._threat_squares(other_color)
+        if piece == 'k' or piece == 'K' and start not in opposing_threats:
+            def _can_castle_through_or_to(square_str):
+                return self.board.piece_at_board_square(
+                    square_str) is None and BoardSquare(
+                    square_str) not in opposing_threats
+
             if piece == 'k':
                 if self.castling.black_kingside:
-                    if (self.board.piece_at_board_square('f8') is None) and (
-                        self.board.piece_at_board_square('g8') is None):
+                    if _can_castle_through_or_to(
+                        'f8') and _can_castle_through_or_to('g8'):
                         ends.add(BoardSquare('g8'))
                 if self.castling.black_queenside:
-                    if (self.board.piece_at_board_square('b8') is None) and (
-                        self.board.piece_at_board_square('c8') is None) and (
-                        self.board.piece_at_board_square('d8') is None):
+                    if _can_castle_through_or_to(
+                        'b8') and _can_castle_through_or_to(
+                        'c8') and _can_castle_through_or_to('d8'):
                         ends.add(BoardSquare('c8'))
             elif piece == 'K':
                 if self.castling.white_kingside:
-                    if (self.board.piece_at_board_square('f1') is None) and (
-                        self.board.piece_at_board_square('g1') is None):
+                    if _can_castle_through_or_to(
+                        'f1') and _can_castle_through_or_to('g1'):
                         ends.add(BoardSquare('g1'))
                 if self.castling.white_queenside:
-                    if (self.board.piece_at_board_square('b1') is None) and (
-                        self.board.piece_at_board_square('c1') is None) and (
-                        self.board.piece_at_board_square('d1') is None):
+                    if _can_castle_through_or_to(
+                        'b1') and _can_castle_through_or_to(
+                        'c1') and _can_castle_through_or_to('d1'):
                         ends.add(BoardSquare('c1'))
-        elif piece == 'q' or piece == 'Q':
-            for one in (-1, 0, 1):
-                for two in (-1, 0, 1):
-                    if one == two == 0:
-                        continue
-                    ends.update(self._generate_ends(color, start, one, two, 8))
-        else:
-            raise NotImplementedError(
-                'No idea how to generate moves for %s' % piece)
 
         if check_check:
             # Generate potential boards

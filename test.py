@@ -196,8 +196,16 @@ class TestChess(unittest.TestCase):
         new_game = game.move(BasicMove('e1', 'g1'))
         self.assertEqual(new_game.fen(), 'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1')
 
+    def test_castling_out_of_check(self):
+        game = Game('4rk2/8/8/8/8/8/8/R3K2R w KQ - 0 1')
+
+        self.assertSetEqual(game.board.check_status(), set("w"))
+        self.assertNotIn(BoardSquare('c1'), game.valid_ends('e1'), 'Attempting to castle out of check')
+        self.assertNotIn(BoardSquare('g1'), game.valid_ends('e1'), 'Attempting to castle out of check')
+        self.assertSetEqual(game.valid_ends('e1'), self._squarify(['d2', 'f2', 'd1', 'f1']))
+
     def test_castling_through_check(self):
-        game = Game('rrrrkrrr/8/8/8/8/8/8/R3K2R w KQ - 0 1')
+        game = Game('3rkr2/8/8/8/8/8/8/R3K2R w KQ - 0 1')
 
         self.assertSetEqual(game.board.check_status(), set())
         self.assertSetEqual(game.valid_ends('e1'), self._squarify(['e2']))
