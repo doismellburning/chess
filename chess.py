@@ -373,8 +373,8 @@ class _Board(object):
                     rook_from = BoardSquare('a8')
                     rook_to = BoardSquare('d8')
                 elif (move.end == BoardSquare('g8')):
-                    rook_from = BoardSquare('h1')
-                    rook_to = BoardSquare('f1')
+                    rook_from = BoardSquare('h8')
+                    rook_to = BoardSquare('f8')
                 rook_start = rook_from.to_board_coordinates()
                 rook_end = rook_to.to_board_coordinates()
                 piece = new_board_squares[rook_start[0]][rook_start[1]]
