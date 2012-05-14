@@ -1,5 +1,12 @@
+import doctest
 import unittest
+import chess
 from chess import Game, BoardSquare, InvalidSquareException, BasicMove, NoPieceAtSquareException, MoveMissingPromotionException, InvalidPromotionDataException
+
+def load_tests(loader, tests, pattern):
+    tests.addTests(doctest.DocTestSuite(chess))
+    tests.addTests(doctest.DocFileSuite('README.rst'))
+    return tests
 
 class TestChess(unittest.TestCase):
 
