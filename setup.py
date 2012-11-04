@@ -6,5 +6,5 @@ setup(name='chess',
       author_email='libchess@doismellburning.co.uk',
       url='https://github.com/doismellburning/chess',
       version='0.9',
-      py_modules=['chess'],
+      packages=['chess'],
       )
